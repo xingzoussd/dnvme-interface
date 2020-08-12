@@ -14,11 +14,11 @@
 #include "inc/dnvme_interface.h"
 
 int ioctl_send_command(int fd, struct nvme_64b_send *cmd);
-int ioctl_create_admin_cq(int fd, struct nvme_get_q_metrics *metrics);
-int ioctl_create_admin_sq(int fd, struct nvme_get_q_metrics *metrics);
-int ioctl_create_iocq(int fd, struct nvme_prep_cq *cmd, struct nvme_get_q_metrics *metrics);
-int ioctl_create_iosq(int fd, struct nvme_prep_sq *cmd, struct nvme_get_q_metrics *metrics);
-int ioctl_ring_doorbell(int fd, uint16_t sqid);
+int ioctl_create_admin_cq(int fd);
+int ioctl_create_admin_sq(int fd);
+int ioctl_create_iocq(int fd, struct nvme_create_cq *cmd, uint8_t contig);
+int ioctl_create_iosq(int fd, struct nvme_create_sq *cmd, uint8_t contig);
+int ioctl_ring_doorbell(int fd, uint16_t sq_id);
 
 
 

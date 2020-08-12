@@ -44,64 +44,165 @@ int open_dev(char *dev)
     return fd;
 }
 
-int dnvme_create_admin_cq(int fd, uint8_t *buffer, uint32_t buffer_len)
+int dnvme_create_admin_cq(int fd)
 {
-    struct nvme_get_q_metrics metrics = {
-        .q_id = 0,
-        .type = METRICS_CQ,
-        .nBytes = buffer_len,
-        .buffer = buffer,
-    };
-    return ioctl_create_admin_cq(fd, &metrics);
+    return ioctl_create_admin_cq(fd);
 }
 
-int dnvme_create_admin_sq(int fd, uint8_t *buffer, uint32_t buffer_len)
+int dnvme_create_admin_sq(int fd)
 {
-    struct nvme_get_q_metrics metrics = {
-        .q_id = 0,
-        .type = METRICS_SQ,
-        .nBytes = buffer_len,
-        .buffer = buffer,
+    return ioctl_create_admin_sq(fd);
+}
+
+int malloc_4k_aligned_buffer(void *buffer, uint32_t element_size, uint32_t elements)
+{
+    buffer = NULL;
+    posix_memalign(&buffer, 4096, element_size*elements);
+    if (buffer)
+    {
+        return SUCCESS;
+    }
+    return FAILURE;
+}
+
+/************************************* Register commands ************************************/
+int dnvme_controller_reg_read_block(int fd, uint32_t offset, uint32_t bytes, uint8_t *data)
+{
+    struct rw_generic read_param = {
+        .type = NVMEIO_BAR01,
+        .offset = offset,
+        .nBytes = bytes,
+        .acc_type = BYTE_LEN,
+        .buffer = data,
     };
-    return ioctl_create_admin_sq(fd, &metrics);
+    return ioctl(fd, NVME_READ_GENERIC, &read_param);
+}
+
+int dnvme_controller_reg_read_byte(int fd, uint32_t offset, uint8_t *data)
+{
+    return dnvme_controller_reg_read_block(fd, offset, 1, data);
+}
+
+int dnvme_controller_reg_read_word(int fd, uint32_t offset, uint8_t *data)
+{
+    return dnvme_controller_reg_read_block(fd, offset, 2, data);
+}
+
+int dnvme_controller_reg_read_dword(int fd, uint32_t offset, uint8_t *data)
+{
+    return dnvme_controller_reg_read_block(fd, offset, 4, data);
+}
+
+int dnvme_controller_reg_write_block(int fd, uint32_t offset, uint32_t bytes, uint8_t *data)
+{
+    struct rw_generic write_param = {
+        .type = NVMEIO_BAR01,
+        .offset = offset,
+        .nBytes = bytes,
+        .acc_type = BYTE_LEN,
+        .buffer = data,
+    };
+    return ioctl(fd, NVME_WRITE_GENERIC, &write_param);
+}
+
+int dnvme_controller_reg_write_byte(int fd, uint32_t offset, uint8_t *data)
+{
+    return dnvme_controller_reg_write_block(fd, offset, 1, data);
+}
+
+int dnvme_controller_reg_write_word(int fd, uint32_t offset, uint8_t *data)
+{
+    return dnvme_controller_reg_write_block(fd, offset, 2, data);
+}
+
+int dnvme_controller_reg_write_dword(int fd, uint32_t offset, uint8_t *data)
+{
+    return dnvme_controller_reg_write_block(fd, offset, 4, data);
+}
+
+int dnvme_pcie_capability_read_block(int fd, uint32_t offset, uint32_t bytes, uint8_t *data)
+{
+    struct rw_generic read_param = {
+        .type = NVMEIO_PCI_HDR,
+        .offset = offset,
+        .nBytes = bytes,
+        .acc_type = BYTE_LEN,
+        .buffer = data,
+    };
+    return ioctl(fd, NVME_READ_GENERIC, &read_param);
+}
+
+int dnvme_pcie_capability_read_byte(int fd, uint32_t offset, uint8_t *data)
+{
+    return dnvme_pcie_capability_read_block(fd, offset, 1, data);
+}
+
+int dnvme_pcie_capability_read_word(int fd, uint32_t offset, uint8_t *data)
+{
+    return dnvme_pcie_capability_read_block(fd, offset, 2, data);
+}
+
+int dnvme_pcie_capability_read_dword(int fd, uint32_t offset, uint8_t *data)
+{
+    return dnvme_pcie_capability_read_block(fd, offset, 4, data);
+}
+
+int dnvme_pcie_capability_write_block(int fd, uint32_t offset, uint32_t bytes, uint8_t *data)
+{
+    struct rw_generic write_param = {
+        .type = NVMEIO_PCI_HDR,
+        .offset = offset,
+        .nBytes = bytes,
+        .acc_type = BYTE_LEN,
+        .buffer = data,
+    };
+    return ioctl(fd, NVME_WRITE_GENERIC, &write_param);
+}
+
+int dnvme_pcie_capability_write_byte(int fd, uint32_t offset, uint8_t *data)
+{
+    return dnvme_pcie_capability_write_block(fd, offset, 1, data);
+}
+
+int dnvme_pcie_capability_write_word(int fd, uint32_t offset, uint8_t *data)
+{
+    return dnvme_pcie_capability_write_block(fd, offset, 2, data);
+}
+
+int dnvme_pcie_capability_write_dword(int fd, uint32_t offset, uint8_t *data)
+{
+    return dnvme_pcie_capability_write_block(fd, offset, 4, data);
 }
 
 /************************************** Admin commands **************************************/
 
-int dnvme_create_iocq(int fd, uint16_t cq_id, uint16_t irq_no, uint8_t *buffer, uint32_t buffer_len)
+int dnvme_create_iocq(int fd, uint16_t cq_id, uint16_t irq_no, uint16_t qsize, uint8_t contig, void *buffer)
 {
-    int ret = 0;
-    struct nvme_prep_cq cmd = {
-        .elements = NVME_QUEUE_ELEMENTS,
-        .cq_id = cq_id,
-        .contig = 1,
+    struct nvme_create_cq cmd = {
+        .opcode = NVME_ADMIN_CREATE_IOCQ,
+        .flags = 0,
+        .prp1 = (uint64_t)buffer,
+        .cqid = cq_id,
+        .qsize = qsize,
+        .cq_flags = 1,
+        .irq_no = irq_no,
     };
-    struct nvme_get_q_metrics metrics = {
-        .q_id = cq_id,
-        .type = METRICS_CQ,
-        .nBytes = buffer_len,
-        .buffer = buffer,
-    };
-    ret = ioctl_create_iocq(fd, &cmd, &metrics);
+    int ret = ioctl_create_iocq(fd, &cmd, contig);
     return ret;
 }
 
-int dnvme_create_iosq(int fd, uint16_t sq_id, uint16_t cq_id, uint8_t *buffer, uint32_t buffer_len)
+int dnvme_create_iosq(int fd, uint16_t sq_id, uint16_t cq_id, uint16_t qsize, uint8_t contig, void *buffer)
 {
-    int ret = 0;
-    struct nvme_prep_sq cmd = {
-        .elements = NVME_QUEUE_ELEMENTS,
-        .sq_id = sq_id,
-        .cq_id = cq_id,
-        .contig = 1,
+    struct nvme_create_sq cmd = {
+        .opcode = NVME_ADMIN_CREATE_IOSQ,
+        .flags = 0,
+        .prp1 = (uint64_t)buffer,
+        .sqid = sq_id,
+        .qsize = qsize,
+        .sq_flags = 1,
+        .cqid = cq_id,
     };
-    struct nvme_get_q_metrics metrics = {
-        .q_id = sq_id,
-        .type = METRICS_SQ,
-        .nBytes = buffer_len,
-        .buffer = buffer,
-    };
-    ret = ioctl_create_iosq(fd, &cmd, &metrics);
+    int ret = ioctl_create_iosq(fd, &cmd, contig);
     return ret;
 }
 

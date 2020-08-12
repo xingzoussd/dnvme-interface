@@ -10,7 +10,6 @@
 #ifndef __DNVME_H__
 #define __DNVME_H__
 
-
 #define NVME_NSID_ALL       0xffffffff
 #define NVME_NSSR_VALUE     0x4E564D65
 
