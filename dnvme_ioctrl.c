@@ -76,7 +76,7 @@ int ioctl_create_iosq(int fd, struct nvme_create_sq *cmd, uint8_t contig)
         .bit_mask = MASK_PRP1_PAGE,
         .cmd_buf_ptr = (uint8_t *)cmd,
         .data_buf_size = cmd->qsize*NVME_IOSQ_ELEMENT_SIZE,
-        .data_buf_ptr = (uint8_t)cmd->prp1,
+        .data_buf_ptr = (uint8_t *)cmd->prp1,
         .data_dir = 1,
     };
     int ret = ioctl(fd, NVME_IOCTL_PREPARE_SQ_CREATION, &prep_cmd);

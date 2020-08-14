@@ -54,11 +54,11 @@ int dnvme_create_admin_sq(int fd)
     return ioctl_create_admin_sq(fd);
 }
 
-int malloc_4k_aligned_buffer(void *buffer, uint32_t element_size, uint32_t elements)
+int malloc_4k_aligned_buffer(void **buffer, uint32_t element_size, uint32_t elements)
 {
-    buffer = NULL;
-    posix_memalign(&buffer, 4096, element_size*elements);
-    if (buffer)
+    *buffer = NULL;
+    posix_memalign(buffer, 4096, element_size*elements);
+    if (*buffer)
     {
         return SUCCESS;
     }
@@ -66,6 +66,16 @@ int malloc_4k_aligned_buffer(void *buffer, uint32_t element_size, uint32_t eleme
 }
 
 /************************************* Register commands ************************************/
+int dnvme_controller_enable(int fd)
+{
+    return ioctl(fd, NVME_IOCTL_DEVICE_STATE, ST_ENABLE);
+}
+
+int dnvme_controller_disable(int fd)
+{
+    return ioctl(fd, NVME_IOCTL_DEVICE_STATE, ST_DISABLE);
+}
+
 int dnvme_controller_reg_read_block(int fd, uint32_t offset, uint32_t bytes, uint8_t *data)
 {
     struct rw_generic read_param = {
@@ -75,7 +85,7 @@ int dnvme_controller_reg_read_block(int fd, uint32_t offset, uint32_t bytes, uin
         .acc_type = BYTE_LEN,
         .buffer = data,
     };
-    return ioctl(fd, NVME_READ_GENERIC, &read_param);
+    return ioctl(fd, NVME_IOCTL_READ_GENERIC, &read_param);
 }
 
 int dnvme_controller_reg_read_byte(int fd, uint32_t offset, uint8_t *data)
@@ -102,7 +112,7 @@ int dnvme_controller_reg_write_block(int fd, uint32_t offset, uint32_t bytes, ui
         .acc_type = BYTE_LEN,
         .buffer = data,
     };
-    return ioctl(fd, NVME_WRITE_GENERIC, &write_param);
+    return ioctl(fd, NVME_IOCTL_WRITE_GENERIC, &write_param);
 }
 
 int dnvme_controller_reg_write_byte(int fd, uint32_t offset, uint8_t *data)
@@ -129,7 +139,7 @@ int dnvme_pcie_capability_read_block(int fd, uint32_t offset, uint32_t bytes, ui
         .acc_type = BYTE_LEN,
         .buffer = data,
     };
-    return ioctl(fd, NVME_READ_GENERIC, &read_param);
+    return ioctl(fd, NVME_IOCTL_READ_GENERIC, &read_param);
 }
 
 int dnvme_pcie_capability_read_byte(int fd, uint32_t offset, uint8_t *data)
@@ -156,7 +166,7 @@ int dnvme_pcie_capability_write_block(int fd, uint32_t offset, uint32_t bytes, u
         .acc_type = BYTE_LEN,
         .buffer = data,
     };
-    return ioctl(fd, NVME_WRITE_GENERIC, &write_param);
+    return ioctl(fd, NVME_IOCTL_WRITE_GENERIC, &write_param);
 }
 
 int dnvme_pcie_capability_write_byte(int fd, uint32_t offset, uint8_t *data)
@@ -208,100 +218,148 @@ int dnvme_create_iosq(int fd, uint16_t sq_id, uint16_t cq_id, uint16_t qsize, ui
 
 int dnvme_delete_iosq(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 int dnvme_delete_iocq(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 } 
 
 int dnvme_get_log_page(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 int dnvme_identify(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 int dnvme_abort(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 int dnvme_set_feature(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 int dnvme_get_feature(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 int dnvme_async_event_request(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 int dnvme_namespace_management(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 int dnvme_firmware_commit(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 int dnvme_firmware_image_download(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 int dnvme_device_self_test(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 int dnvme_namespace_attachment(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 int dnvme_format_nvm(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 int dnvme_security_send(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 int dnvme_security_receive(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 int dnvme_sanitize_nvm(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 /************************************** IO commands **************************************/
 
 int dnvme_flush(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 int dnvme_write(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 int dnvme_read(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 int dnvme_write_uncorrectable(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 int dnvme_compare(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 int dnvme_write_zeroes(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 int dnvme_dataset_management(int fd, struct nvme_64b_send *cmd)
 {
+    int ret = 0;
+    return ret;
 }
 
 
