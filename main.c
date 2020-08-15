@@ -78,17 +78,18 @@ int main(int argc, char *argv[])
     printf("Device File Successfully Opened = %d\n", fd);
     ret = malloc_4k_aligned_buffer(&iocq_buffer, NVME_IOCQ_ELEMENT_SIZE, qsize);
     ret = malloc_4k_aligned_buffer(&iosq_buffer, NVME_IOSQ_ELEMENT_SIZE, qsize);
-    //ret = dnvme_controller_enable(fd);
+    ret = dnvme_controller_disable(fd);
+    ret = dnvme_create_admin_cq(fd);
+    ret = dnvme_create_admin_sq(fd);
+    ret = dnvme_controller_enable(fd);
     ioctl_drive_metrics(fd);
     ioctl_device_metrics(fd);
     show_pcie_capability(fd);
     show_cc(fd);
     show_csts(fd);
-    ret = dnvme_create_admin_cq(fd);
-    ret = dnvme_create_admin_sq(fd);
-    dnvme_create_iocq(fd, cq_id, irq_no, qsize, contig, iocq_buffer);
-    dnvme_create_iosq(fd, sq_id, cq_id, qsize, contig, iosq_buffer);
-    ioctl_ring_doorbell(fd, 0);
+    ret = dnvme_create_iocq(fd, cq_id, irq_no, qsize, contig, iocq_buffer);
+    ret = dnvme_create_iosq(fd, sq_id, cq_id, qsize, contig, iosq_buffer);
+    ret = ioctl_ring_doorbell(fd, 0);
     return 0;
 }
 

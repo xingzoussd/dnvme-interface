@@ -33,7 +33,7 @@
  * tnvme refuses to execute when it detects a API version mismatch to dnvme.
  */
 #define    API_VERSION          0x00010402          /* 1.4.2 */
-#define    NVME_QUEUE_ELEMENTS  0xFFFF
+#define    NVME_QUEUE_ELEMENTS  0x1000
 #define    NVME_IOSQ_ELEMENT_SIZE  0x40
 #define    NVME_IOCQ_ELEMENT_SIZE  0x10
 
