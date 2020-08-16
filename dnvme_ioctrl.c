@@ -55,7 +55,7 @@ int ioctl_create_iocq(int fd, struct nvme_create_cq *cmd, uint8_t contig)
         .cmd_buf_ptr = (uint8_t *)cmd,
         .data_buf_size = cmd->qsize*NVME_IOCQ_ELEMENT_SIZE,
         .data_buf_ptr = (uint8_t *)cmd->prp1,
-        .data_dir = 1,
+        .data_dir = DATA_DIR_TO_DEVICE,
     };
     int ret = ioctl(fd, NVME_IOCTL_PREPARE_CQ_CREATION, &prep_cmd);
     if (ret) return ret;
@@ -77,13 +77,53 @@ int ioctl_create_iosq(int fd, struct nvme_create_sq *cmd, uint8_t contig)
         .cmd_buf_ptr = (uint8_t *)cmd,
         .data_buf_size = cmd->qsize*NVME_IOSQ_ELEMENT_SIZE,
         .data_buf_ptr = (uint8_t *)cmd->prp1,
-        .data_dir = 1,
+        .data_dir = DATA_DIR_TO_DEVICE,
     };
     int ret = ioctl(fd, NVME_IOCTL_PREPARE_SQ_CREATION, &prep_cmd);
     if (ret) return ret;
     ret = ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
     return ret;
 }
+
+int ioctl_delete_ioq(int fd, struct nvme_del_q *cmd)
+{
+    struct nvme_64b_send user_cmd = {
+        .q_id = 0,
+        .bit_mask = MASK_NON_PRP,
+        .cmd_buf_ptr = (uint8_t *)cmd,
+        .data_buf_size = 0,
+        .data_buf_ptr = NULL,
+        .data_dir = DATA_DIR_FROM_DEVICE,
+    };
+    return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
+}
+
+int ioctl_get_log_page(int fd, struct nvme_get_log_page *cmd)
+{
+    struct nvme_64b_send user_cmd = {
+        .q_id = 0,
+        .bit_mask = MASK_PRP1_PAGE,
+        .cmd_buf_ptr = (uint8_t *)cmd,
+        .data_buf_size = 0,
+        .data_buf_ptr = NULL,
+        .data_dir = DATA_DIR_FROM_DEVICE,
+    };
+    return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
+}
+
+int ioctl_identify(int fd, struct nvme_identify *cmd)
+{
+    struct nvme_64b_send user_cmd = {
+        .q_id = 0,
+        .bit_mask = MASK_PRP1_PAGE,
+        .cmd_buf_ptr = (uint8_t *)cmd,
+        .data_buf_size = sizeof(struct nvme_id_ctrl),
+        .data_buf_ptr = (uint8_t *)cmd->prp1,
+        .data_dir = DATA_DIR_FROM_DEVICE,
+    };
+    return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
+}
+
 
 int ioctl_ring_doorbell(int fd, uint16_t sq_id)
 {

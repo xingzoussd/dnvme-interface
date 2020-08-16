@@ -216,17 +216,23 @@ int dnvme_create_iosq(int fd, uint16_t sq_id, uint16_t cq_id, uint16_t qsize, ui
     return ret;
 }
 
-int dnvme_delete_iosq(int fd, struct nvme_64b_send *cmd)
+int dnvme_delete_iosq(int fd, uint16_t sq_id)
 {
-    int ret = 0;
-    return ret;
+    struct nvme_del_q cmd = {
+        .opcode = NVME_ADMIN_DELETE_IOSQ,
+        .qid = sq_id,
+    };
+    return ioctl_delete_ioq(fd, &cmd);
 }
 
-int dnvme_delete_iocq(int fd, struct nvme_64b_send *cmd)
+int dnvme_delete_iocq(int fd, uint16_t cq_id)
 {
-    int ret = 0;
-    return ret;
-} 
+    struct nvme_del_q cmd = {
+        .opcode = NVME_ADMIN_DELETE_IOCQ,
+        .qid = cq_id,
+    };
+    return ioctl_delete_ioq(fd, &cmd);
+}
 
 int dnvme_get_log_page(int fd, struct nvme_64b_send *cmd)
 {
@@ -234,11 +240,30 @@ int dnvme_get_log_page(int fd, struct nvme_64b_send *cmd)
     return ret;
 }
 
-int dnvme_identify(int fd, struct nvme_64b_send *cmd)
+int dnvme_identify_ctrl(int fd, uint16_t ctrl_id, uint8_t *buffer)
 {
-    int ret = 0;
-    return ret;
+    struct nvme_identify cmd = {
+        .opcode = NVME_ADMIN_IDENTIFY,
+        .nsid = 0,
+        .cns = NVME_ID_CNS_CTRL,
+        .ctrl_id = 0,
+        .prp1 = (uint64_t)buffer,
+    };
+    return ioctl_identify(fd, &cmd);
 }
+
+int dnvme_identify_ns(int fd, uint16_t ctrl_id, uint8_t *buffer)
+{
+    struct nvme_identify cmd = {
+        .opcode = NVME_ADMIN_IDENTIFY,
+        .nsid = 1,
+        .cns = NVME_ID_CNS_NS,
+        .ctrl_id = ctrl_id,
+        .prp1 = (uint64_t)buffer,
+    };
+    return ioctl_identify(fd, &cmd);
+}
+
 
 int dnvme_abort(int fd, struct nvme_64b_send *cmd)
 {

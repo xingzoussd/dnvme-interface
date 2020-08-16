@@ -105,11 +105,20 @@ enum nvme_state {
 
 /* Enum specifying bitmask passed on to IOCTL_SEND_64B */
 enum send_64b_bitmask {
+    MASK_NON_PRP = 0,
     MASK_PRP1_PAGE = 1, /* PRP1 can point to a physical page */
     MASK_PRP1_LIST = 2, /* PRP1 can point to a PRP list */
     MASK_PRP2_PAGE = 4, /* PRP2 can point to a physical page */
     MASK_PRP2_LIST = 8, /* PRP2 can point to a PRP list */
     MASK_MPTR = 16,     /* MPTR may be modified */
+};
+
+enum data_direction {
+    DATA_DIR_NONE = 0,
+    DATA_DIR_TO_DEVICE,
+    DATA_DIR_FROM_DEVICE,
+    DATA_DIR_BI_DIR,
+    DATA_DIR_ILLEGAL
 };
 
 /**
@@ -335,6 +344,153 @@ struct nvme_del_q {
     uint16_t qid;
     uint16_t rsvd10;
     uint32_t rsvd11[5];
+};
+
+/**
+ * structure for Get log page command
+ */
+struct nvme_get_log_page {
+    uint8_t  opcode;
+    uint8_t  flags;
+    uint16_t command_id;
+    uint32_t nsid;
+    uint32_t rsvd1[4];
+    uint64_t prp1;
+    uint64_t prp2;
+    uint8_t  log_id;
+    uint8_t  log_field;
+    uint16_t dw_num_low;
+    uint16_t dw_num_high;
+    uint16_t rsvd10;
+    uint32_t page_offset_low;
+    uint32_t page_offset_high;
+    uint32_t rsvd11[2];
+};
+
+/**
+ * power state descripter for identify controller
+ */
+struct ctrl_power_state_descripter {
+    uint16_t max_power;  /* centiwatts */
+    uint8_t  rsvd2;
+    uint8_t  flags;
+    uint32_t entry_lat;  /* microseconds */
+    uint32_t exit_lat;   /* microseconds */
+    uint8_t  read_tput;
+    uint8_t  read_lat;
+    uint8_t  write_tput;
+    uint8_t  write_lat;
+    uint16_t idle_power;
+    uint8_t  idle_scale;
+    uint8_t  rsvd19;
+    uint16_t active_power;
+    uint8_t  active_work_scale;
+    uint8_t  rsvd23[9];
+};
+
+enum {
+    NVME_PS_FLAGS_MAX_POWER_SCALE   = 1 << 0,
+    NVME_PS_FLAGS_NON_OP_STATE  = 1 << 1,
+};
+
+/**
+ * structure for identify command
+ */
+struct nvme_identify {
+    uint8_t  opcode;
+    uint8_t  flags;
+    uint16_t command_id;
+    uint32_t nsid;
+    uint32_t rsvd1[4];
+    uint64_t prp1;
+    uint64_t rsvd8;
+    uint16_t cns;
+    uint16_t ctrl_id;
+    uint16_t rsvd11[5];
+};
+
+/**
+ * structure for identify controller response
+ */
+struct nvme_id_ctrl {
+    uint16_t vid;
+    uint16_t subsustem_vid;
+    char sn[20];
+    char mn[40];
+    char fr[8];
+    uint8_t rab;
+    uint8_t ieee[3];
+    uint8_t cmic;
+    uint8_t mdts;
+    uint16_t cntlid;
+    uint32_t ver;
+    uint32_t rtd3r;
+    uint32_t rtd3e;
+    uint32_t oaes;
+    uint32_t ctratt;
+    uint16_t rrls;
+    uint8_t rsvd102[154];
+    uint16_t oacs;
+    uint8_t acl;
+    uint8_t aerl;
+    uint8_t frmw;
+    uint8_t lpa;
+    uint8_t elpe;
+    uint8_t npss;
+    uint8_t avscc;
+    uint8_t apsta;
+    uint16_t wctemp;
+    uint16_t cctemp;
+    uint16_t mtfa;
+    uint32_t hmpre;
+    uint32_t hmmin;
+    uint8_t tnvmcap[16];
+    uint8_t unvmcap[16];
+    uint32_t rpmbs;
+    uint16_t edstt;
+    uint8_t dsto;
+    uint8_t fwug;
+    uint16_t kas;
+    uint16_t hctma;
+    uint16_t mntmt;
+    uint16_t mxtmt;
+    uint32_t sanicap;
+    uint32_t hmminds;
+    uint16_t hmmaxd;
+    uint16_t nsetidmax;
+    uint8_t rsvd340[2];
+    uint8_t anatt;
+    uint8_t anacap;
+    uint32_t anagrpmax;
+    uint32_t nanagrpid;
+    uint8_t rsvd352[160];
+    uint8_t sqes;
+    uint8_t cqes;
+    uint16_t maxcmd;
+    uint32_t nn;
+    uint16_t oncs;
+    uint16_t fuses;
+    uint8_t fna;
+    uint8_t vwc;
+    uint16_t awun;
+    uint16_t awupf;
+    uint8_t nvscc;
+    uint8_t nwpc;
+    uint16_t acwu;
+    uint8_t rsvd534[2];
+    uint16_t sgls;
+    uint16_t mnan;
+    uint8_t rsvd544[224];
+    char subnqn[256];
+    uint8_t rsvd1024[768];
+    uint32_t ioccsz;
+    uint32_t iorcsz;
+    uint16_t icdoff;
+    uint8_t ctrattr;
+    uint8_t msdbd;
+    uint8_t rsvd1804[244];
+    struct ctrl_power_state_descripter psd[32];
+    uint8_t vs[1024];
 };
 
 /**

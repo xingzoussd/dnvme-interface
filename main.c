@@ -69,7 +69,9 @@ int main(int argc, char *argv[])
     uint8_t contig = 1;
     void *iocq_buffer = NULL;
     void *iosq_buffer = NULL;
+    void *identify_ctrl_buffer = NULL;
     int ret = 0;
+    struct nvme_id_ctrl ctrl_info;
     fd = open_dev(DEVICE_FILE_NAME);
     if (fd < 0) {
         printf("Can't open device file: %s\n", DEVICE_FILE_NAME);
@@ -78,6 +80,7 @@ int main(int argc, char *argv[])
     printf("Device File Successfully Opened = %d\n", fd);
     ret = malloc_4k_aligned_buffer(&iocq_buffer, NVME_IOCQ_ELEMENT_SIZE, qsize);
     ret = malloc_4k_aligned_buffer(&iosq_buffer, NVME_IOSQ_ELEMENT_SIZE, qsize);
+    ret = malloc_4k_aligned_buffer(&identify_ctrl_buffer, sizeof(struct nvme_id_ctrl), 1);
     ret = dnvme_controller_disable(fd);
     ret = dnvme_create_admin_cq(fd);
     ret = dnvme_create_admin_sq(fd);
@@ -89,7 +92,9 @@ int main(int argc, char *argv[])
     show_csts(fd);
     ret = dnvme_create_iocq(fd, cq_id, irq_no, qsize, contig, iocq_buffer);
     ret = dnvme_create_iosq(fd, sq_id, cq_id, qsize, contig, iosq_buffer);
+    ret = dnvme_identify_ctrl(fd, 0, identify_ctrl_buffer);
     ret = ioctl_ring_doorbell(fd, 0);
+    memcpy(&ctrl_info, identify_ctrl_buffer, sizeof(struct nvme_id_ctrl));
     return 0;
 }
 

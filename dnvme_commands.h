@@ -44,7 +44,7 @@ int dnvme_create_admin_cq(int fd);
 int dnvme_create_admin_sq(int fd);
 int dnvme_create_iocq(int fd, uint16_t cq_id, uint16_t irq_no, uint16_t qsize, uint8_t contig, void *buffer);
 int dnvme_create_iosq(int fd, uint16_t sq_id, uint16_t cq_id, uint16_t qsize, uint8_t contig, void *buffer);
-
+int dnvme_identify_ctrl(int fd, uint16_t ctrl_id, uint8_t *buffer);
 
 
 #endif
