@@ -21,7 +21,7 @@ AUTHOR=xingzou <sweet.zou@hotmail.com>
 
 all: $(DNVME)
 
-OBJS := dnvme_ioctrl.o dnvme_commands.o
+OBJS := dnvme_ioctrl.o dnvme_commands.o dnvme_show.o
 
 ifeq ($(BUILD_OPT),$(BUILD_BIN))
     OBJS += main.o
@@ -34,7 +34,7 @@ else
 	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $^
 endif
 
-%.o: %.c %.h inc/dnvme_interface.h inc/dnvme_ioctl.h dnvme.h dnvme_ioctrl.h dnvme_commands.h
+%.o: %.c %.h inc/dnvme_interface.h inc/dnvme_ioctl.h dnvme.h dnvme_ioctrl.h dnvme_commands.h dnvme_show.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -c $<
 
 clean:

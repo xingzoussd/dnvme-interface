@@ -252,11 +252,11 @@ int dnvme_identify_ctrl(int fd, uint16_t ctrl_id, uint8_t *buffer)
     return ioctl_identify(fd, &cmd);
 }
 
-int dnvme_identify_ns(int fd, uint16_t ctrl_id, uint8_t *buffer)
+int dnvme_identify_ns(int fd, uint16_t ctrl_id, uint32_t nsid, uint8_t *buffer)
 {
     struct nvme_identify cmd = {
         .opcode = NVME_ADMIN_IDENTIFY,
-        .nsid = 1,
+        .nsid = nsid,
         .cns = NVME_ID_CNS_NS,
         .ctrl_id = ctrl_id,
         .prp1 = (uint64_t)buffer,

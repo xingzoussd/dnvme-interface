@@ -478,8 +478,8 @@ struct nvme_id_ctrl {
     uint8_t nwpc;
     uint16_t acwu;
     uint8_t rsvd534[2];
-    uint16_t sgls;
-    uint16_t mnan;
+    uint32_t sgls;
+    uint32_t mnan;
     uint8_t rsvd544[224];
     char subnqn[256];
     uint8_t rsvd1024[768];
@@ -491,6 +491,47 @@ struct nvme_id_ctrl {
     uint8_t rsvd1804[244];
     struct ctrl_power_state_descripter psd[32];
     uint8_t vs[1024];
+};
+
+struct nvme_lbaf {
+    uint16_t ms;
+    uint8_t ds;
+    uint8_t rp;
+};
+
+struct nvme_id_ns {
+    uint64_t nsze;
+    uint64_t ncap;
+    uint64_t nuse;
+    uint8_t  nsfeat;
+    uint8_t  nlbaf;
+    uint8_t  flbas;
+    uint8_t  mc;
+    uint8_t  dpc;
+    uint8_t  dps;
+    uint8_t  nmic;
+    uint8_t  rescap;
+    uint8_t  fpi;
+    uint8_t  dlfeat;
+    uint16_t nawun;
+    uint16_t nawupf;
+    uint16_t nacwu;
+    uint16_t nabsn;
+    uint16_t nabo;
+    uint16_t nabspf;
+    uint16_t noiob;
+    uint8_t  nvmcap[16];
+    uint8_t  rsvd64[28];
+    uint32_t anagrpid;
+    uint8_t  rsvd96[3];
+    uint8_t  nsattr;
+    uint16_t nvmsetid;
+    uint16_t endgid;
+    uint8_t  nguid[16];
+    uint8_t  eui64[8];
+    struct nvme_lbaf lbaf[16];
+    uint8_t  rsvd192[192];
+    uint8_t  vs[3712];
 };
 
 /**

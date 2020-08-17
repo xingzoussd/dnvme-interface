@@ -22,6 +22,7 @@
 #include <sys/mman.h>
 
 #include "dnvme_commands.h"
+#include "dnvme_show.h"
 
 #define DEVICE_FILE_NAME "/dev/nvme0"
 
@@ -31,14 +32,7 @@ void show_pcie_capability(int fd)
     uint32_t bytes = 0x100;
     uint8_t *data = (uint8_t*)malloc(sizeof(char)*bytes);
     int ret = dnvme_pcie_capability_read_block(fd, 0, bytes, data);
-    for (i=0; i<bytes; i++)
-    {
-        if ((i&0xF)==0x0)
-            printf("%02x: ", i);
-        printf("%02x ", data[i]);
-        if ((i&0xF)==0xF)
-            printf("\b\n");
-    }
+    show_raw_data(data, bytes, "PCIE capability");
     free(data);
 }
 
@@ -70,8 +64,10 @@ int main(int argc, char *argv[])
     void *iocq_buffer = NULL;
     void *iosq_buffer = NULL;
     void *identify_ctrl_buffer = NULL;
+    void *identify_ns_buffer = NULL;
     int ret = 0;
     struct nvme_id_ctrl ctrl_info;
+    struct nvme_id_ns ns_info;
     fd = open_dev(DEVICE_FILE_NAME);
     if (fd < 0) {
         printf("Can't open device file: %s\n", DEVICE_FILE_NAME);
@@ -81,6 +77,7 @@ int main(int argc, char *argv[])
     ret = malloc_4k_aligned_buffer(&iocq_buffer, NVME_IOCQ_ELEMENT_SIZE, qsize);
     ret = malloc_4k_aligned_buffer(&iosq_buffer, NVME_IOSQ_ELEMENT_SIZE, qsize);
     ret = malloc_4k_aligned_buffer(&identify_ctrl_buffer, sizeof(struct nvme_id_ctrl), 1);
+    ret = malloc_4k_aligned_buffer(&identify_ns_buffer, sizeof(struct nvme_id_ns), 1);
     ret = dnvme_controller_disable(fd);
     ret = dnvme_create_admin_cq(fd);
     ret = dnvme_create_admin_sq(fd);
@@ -93,8 +90,13 @@ int main(int argc, char *argv[])
     ret = dnvme_create_iocq(fd, cq_id, irq_no, qsize, contig, iocq_buffer);
     ret = dnvme_create_iosq(fd, sq_id, cq_id, qsize, contig, iosq_buffer);
     ret = dnvme_identify_ctrl(fd, 0, identify_ctrl_buffer);
+    ret = dnvme_identify_ns(fd, 0, 1, identify_ns_buffer);
     ret = ioctl_ring_doorbell(fd, 0);
+    sleep(2);
     memcpy(&ctrl_info, identify_ctrl_buffer, sizeof(struct nvme_id_ctrl));
+    memcpy(&ns_info, identify_ns_buffer, sizeof(struct nvme_id_ns));
+    show_raw_data((uint8_t *)identify_ctrl_buffer, sizeof(struct nvme_id_ctrl), "Identify controller");
+    show_raw_data((uint8_t *)identify_ns_buffer, sizeof(struct nvme_id_ns), "Identify namespace");
     return 0;
 }
 
