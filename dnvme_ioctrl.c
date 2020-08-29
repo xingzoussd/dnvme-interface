@@ -124,10 +124,44 @@ int ioctl_identify(int fd, struct nvme_identify *cmd)
     return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
 }
 
+int ioctl_abort(int fd, struct nvme_abort *cmd)
+{
+    struct nvme_64b_send user_cmd = {
+        .q_id = 0,
+        .cmd_buf_ptr = (uint8_t *)cmd,
+    };
+    return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
+}
+
+
 
 int ioctl_ring_doorbell(int fd, uint16_t sq_id)
 {
     return ioctl(fd, NVME_IOCTL_RING_SQ_DOORBELL, sq_id);
+}
+
+int ioctl_cq_remain(int fd, uint16_t q_id)
+{
+    int ret = 0;
+    struct nvme_reap_inquiry inquiry = {
+        .q_id = q_id,
+    };
+    ret = ioctl(fd, NVME_IOCTL_REAP_INQUIRY, &inquiry);
+    if (!ret)
+    {
+        ret = inquiry.num_remaining;
+    }
+    return ret;
+}
+
+int ioctl_cq_reap(int fd, uint16_t q_id, uint16_t remaining, uint8_t *buffer, uint32_t size)
+{
+    struct nvme_reap reap = {
+        .elements = remaining,
+        .buffer = buffer,
+        .size = size,
+    };
+    return ioctl(fd, NVME_IOCTL_REAP, &reap);
 }
 
 void ioctl_drive_metrics(int fd)

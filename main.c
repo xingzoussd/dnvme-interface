@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include <sys/mman.h>
 
+#include "dnvme.h"
 #include "dnvme_commands.h"
 #include "dnvme_show.h"
 
@@ -65,6 +66,9 @@ int main(int argc, char *argv[])
     void *iosq_buffer = NULL;
     void *identify_ctrl_buffer = NULL;
     void *identify_ns_buffer = NULL;
+    void *cq_buffer = NULL;
+    uint16_t cq_remaining = 0;
+    uint16_t cq_buffer_size = 0;
     int ret = 0;
     struct nvme_id_ctrl ctrl_info;
     struct nvme_id_ns ns_info;
@@ -87,16 +91,22 @@ int main(int argc, char *argv[])
     show_pcie_capability(fd);
     show_cc(fd);
     show_csts(fd);
-    ret = dnvme_create_iocq(fd, cq_id, irq_no, qsize, contig, iocq_buffer);
-    ret = dnvme_create_iosq(fd, sq_id, cq_id, qsize, contig, iosq_buffer);
-    ret = dnvme_identify_ctrl(fd, 0, identify_ctrl_buffer);
-    ret = dnvme_identify_ns(fd, 0, 1, identify_ns_buffer);
+    ret = dnvme_admin_create_iocq(fd, cq_id, irq_no, qsize, contig, iocq_buffer);
+    ret = dnvme_admin_create_iosq(fd, sq_id, cq_id, qsize, contig, iosq_buffer);
+    ret = dnvme_admin_identify_ctrl(fd, 0, identify_ctrl_buffer);
+    ret = dnvme_admin_identify_ns(fd, 0, 1, identify_ns_buffer);
+    ret = dnvme_admin_abort(fd, 0, NVME_ADMIN_IDENTIFY);
     ret = ioctl_ring_doorbell(fd, 0);
     sleep(2);
     memcpy(&ctrl_info, identify_ctrl_buffer, sizeof(struct nvme_id_ctrl));
     memcpy(&ns_info, identify_ns_buffer, sizeof(struct nvme_id_ns));
     show_raw_data((uint8_t *)identify_ctrl_buffer, sizeof(struct nvme_id_ctrl), "Identify controller");
     show_raw_data((uint8_t *)identify_ns_buffer, sizeof(struct nvme_id_ns), "Identify namespace");
+    cq_remaining = dnvme_cq_remain(fd, 0);
+    cq_buffer_size = cq_remaining*16;
+    ret = malloc_4k_aligned_buffer(&cq_buffer, cq_buffer_size, 1);
+    ret = dnvme_cq_reap(fd, 0, cq_remaining, cq_buffer, cq_buffer_size);
+    show_raw_data(cq_buffer, cq_buffer_size, "CQ data");
     return 0;
 }
 

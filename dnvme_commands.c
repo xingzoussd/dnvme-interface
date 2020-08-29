@@ -186,7 +186,7 @@ int dnvme_pcie_capability_write_dword(int fd, uint32_t offset, uint8_t *data)
 
 /************************************** Admin commands **************************************/
 
-int dnvme_create_iocq(int fd, uint16_t cq_id, uint16_t irq_no, uint16_t qsize, uint8_t contig, void *buffer)
+int dnvme_admin_create_iocq(int fd, uint16_t cq_id, uint16_t irq_no, uint16_t qsize, uint8_t contig, void *buffer)
 {
     struct nvme_create_cq cmd = {
         .opcode = NVME_ADMIN_CREATE_IOCQ,
@@ -201,7 +201,7 @@ int dnvme_create_iocq(int fd, uint16_t cq_id, uint16_t irq_no, uint16_t qsize, u
     return ret;
 }
 
-int dnvme_create_iosq(int fd, uint16_t sq_id, uint16_t cq_id, uint16_t qsize, uint8_t contig, void *buffer)
+int dnvme_admin_create_iosq(int fd, uint16_t sq_id, uint16_t cq_id, uint16_t qsize, uint8_t contig, void *buffer)
 {
     struct nvme_create_sq cmd = {
         .opcode = NVME_ADMIN_CREATE_IOSQ,
@@ -216,7 +216,7 @@ int dnvme_create_iosq(int fd, uint16_t sq_id, uint16_t cq_id, uint16_t qsize, ui
     return ret;
 }
 
-int dnvme_delete_iosq(int fd, uint16_t sq_id)
+int dnvme_admin_delete_iosq(int fd, uint16_t sq_id)
 {
     struct nvme_del_q cmd = {
         .opcode = NVME_ADMIN_DELETE_IOSQ,
@@ -225,7 +225,7 @@ int dnvme_delete_iosq(int fd, uint16_t sq_id)
     return ioctl_delete_ioq(fd, &cmd);
 }
 
-int dnvme_delete_iocq(int fd, uint16_t cq_id)
+int dnvme_admin_delete_iocq(int fd, uint16_t cq_id)
 {
     struct nvme_del_q cmd = {
         .opcode = NVME_ADMIN_DELETE_IOCQ,
@@ -234,13 +234,13 @@ int dnvme_delete_iocq(int fd, uint16_t cq_id)
     return ioctl_delete_ioq(fd, &cmd);
 }
 
-int dnvme_get_log_page(int fd, struct nvme_64b_send *cmd)
+int dnvme_admin_get_log_page(int fd, struct nvme_64b_send *cmd)
 {
     int ret = 0;
     return ret;
 }
 
-int dnvme_identify_ctrl(int fd, uint16_t ctrl_id, uint8_t *buffer)
+int dnvme_admin_identify_ctrl(int fd, uint16_t ctrl_id, uint8_t *buffer)
 {
     struct nvme_identify cmd = {
         .opcode = NVME_ADMIN_IDENTIFY,
@@ -252,7 +252,7 @@ int dnvme_identify_ctrl(int fd, uint16_t ctrl_id, uint8_t *buffer)
     return ioctl_identify(fd, &cmd);
 }
 
-int dnvme_identify_ns(int fd, uint16_t ctrl_id, uint32_t nsid, uint8_t *buffer)
+int dnvme_admin_identify_ns(int fd, uint16_t ctrl_id, uint32_t nsid, uint8_t *buffer)
 {
     struct nvme_identify cmd = {
         .opcode = NVME_ADMIN_IDENTIFY,
@@ -264,80 +264,83 @@ int dnvme_identify_ns(int fd, uint16_t ctrl_id, uint32_t nsid, uint8_t *buffer)
     return ioctl_identify(fd, &cmd);
 }
 
+int dnvme_admin_abort(int fd, uint16_t sq_id, uint16_t cmd_id)
+{
+    struct nvme_abort cmd = {
+        .opcode = NVME_ADMIN_ABORT,
+        .sq_id = sq_id,
+        .cmd_id = cmd_id,
+    };
+    return ioctl_abort(fd, &cmd);
+}
 
-int dnvme_abort(int fd, struct nvme_64b_send *cmd)
+int dnvme_admin_set_feature(int fd, struct nvme_64b_send *cmd)
 {
     int ret = 0;
     return ret;
 }
 
-int dnvme_set_feature(int fd, struct nvme_64b_send *cmd)
+int dnvme_admin_get_feature(int fd, struct nvme_64b_send *cmd)
 {
     int ret = 0;
     return ret;
 }
 
-int dnvme_get_feature(int fd, struct nvme_64b_send *cmd)
+int dnvme_admin_async_event_request(int fd, struct nvme_64b_send *cmd)
 {
     int ret = 0;
     return ret;
 }
 
-int dnvme_async_event_request(int fd, struct nvme_64b_send *cmd)
+int dnvme_admin_namespace_management(int fd, struct nvme_64b_send *cmd)
 {
     int ret = 0;
     return ret;
 }
 
-int dnvme_namespace_management(int fd, struct nvme_64b_send *cmd)
+int dnvme_admin_firmware_commit(int fd, struct nvme_64b_send *cmd)
 {
     int ret = 0;
     return ret;
 }
 
-int dnvme_firmware_commit(int fd, struct nvme_64b_send *cmd)
+int dnvme_admin_firmware_image_download(int fd, struct nvme_64b_send *cmd)
 {
     int ret = 0;
     return ret;
 }
 
-int dnvme_firmware_image_download(int fd, struct nvme_64b_send *cmd)
+int dnvme_admin_device_self_test(int fd, struct nvme_64b_send *cmd)
 {
     int ret = 0;
     return ret;
 }
 
-int dnvme_device_self_test(int fd, struct nvme_64b_send *cmd)
+int dnvme_admin_namespace_attachment(int fd, struct nvme_64b_send *cmd)
 {
     int ret = 0;
     return ret;
 }
 
-int dnvme_namespace_attachment(int fd, struct nvme_64b_send *cmd)
+int dnvme_admin_format_nvm(int fd, struct nvme_64b_send *cmd)
 {
     int ret = 0;
     return ret;
 }
 
-int dnvme_format_nvm(int fd, struct nvme_64b_send *cmd)
+int dnvme_admin_security_send(int fd, struct nvme_64b_send *cmd)
 {
     int ret = 0;
     return ret;
 }
 
-int dnvme_security_send(int fd, struct nvme_64b_send *cmd)
+int dnvme_admin_security_receive(int fd, struct nvme_64b_send *cmd)
 {
     int ret = 0;
     return ret;
 }
 
-int dnvme_security_receive(int fd, struct nvme_64b_send *cmd)
-{
-    int ret = 0;
-    return ret;
-}
-
-int dnvme_sanitize_nvm(int fd, struct nvme_64b_send *cmd)
+int dnvme_admin_sanitize_nvm(int fd, struct nvme_64b_send *cmd)
 {
     int ret = 0;
     return ret;
@@ -345,52 +348,57 @@ int dnvme_sanitize_nvm(int fd, struct nvme_64b_send *cmd)
 
 /************************************** IO commands **************************************/
 
-int dnvme_flush(int fd, struct nvme_64b_send *cmd)
+int dnvme_nvm_flush(int fd, struct nvme_64b_send *cmd)
 {
     int ret = 0;
     return ret;
 }
 
-int dnvme_write(int fd, struct nvme_64b_send *cmd)
+int dnvme_nvm_write(int fd, struct nvme_64b_send *cmd)
 {
     int ret = 0;
     return ret;
 }
 
-int dnvme_read(int fd, struct nvme_64b_send *cmd)
+int dnvme_nvm_read(int fd, struct nvme_64b_send *cmd)
 {
     int ret = 0;
     return ret;
 }
 
-int dnvme_write_uncorrectable(int fd, struct nvme_64b_send *cmd)
+int dnvme_nvm_write_uncorrectable(int fd, struct nvme_64b_send *cmd)
 {
     int ret = 0;
     return ret;
 }
 
-int dnvme_compare(int fd, struct nvme_64b_send *cmd)
+int dnvme_nvm_compare(int fd, struct nvme_64b_send *cmd)
 {
     int ret = 0;
     return ret;
 }
 
-int dnvme_write_zeroes(int fd, struct nvme_64b_send *cmd)
+int dnvme_nvm_write_zeroes(int fd, struct nvme_64b_send *cmd)
 {
     int ret = 0;
     return ret;
 }
 
-int dnvme_dataset_management(int fd, struct nvme_64b_send *cmd)
+int dnvme_nvm_dataset_management(int fd, struct nvme_64b_send *cmd)
 {
     int ret = 0;
     return ret;
 }
 
+int dnvme_cq_remain(int fd, uint16_t q_id)
+{
+    return ioctl_cq_remain(fd, q_id);
+}
 
-
-
-
+int dnvme_cq_reap(int fd, uint16_t q_id, uint16_t remaining, uint8_t *buffer, uint32_t size)
+{
+    return ioctl_cq_reap(fd, q_id, remaining, buffer, size);
+}
 
 
 

@@ -535,6 +535,20 @@ struct nvme_id_ns {
 };
 
 /**
+ * structure for abort command
+ */
+struct nvme_abort {
+    uint8_t  opcode;
+    uint8_t  flags;
+    uint16_t command_id;
+    uint32_t nsid;
+    uint32_t rsvd1[8];
+    uint16_t sq_id;
+    uint16_t cmd_id;
+    uint16_t rsvd11[5];
+};
+
+/**
  * Interface structure for setting the desired IRQ type.
  * works for all type of interrupt scheme expect PIN based.
  */

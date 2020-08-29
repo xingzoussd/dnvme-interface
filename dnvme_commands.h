@@ -40,12 +40,17 @@ int dnvme_pcie_capability_write_word(int fd, uint32_t offset, uint8_t *data);
 int dnvme_pcie_capability_write_dword(int fd, uint32_t offset, uint8_t *data);
 
 
-int dnvme_create_admin_cq(int fd);
-int dnvme_create_admin_sq(int fd);
-int dnvme_create_iocq(int fd, uint16_t cq_id, uint16_t irq_no, uint16_t qsize, uint8_t contig, void *buffer);
-int dnvme_create_iosq(int fd, uint16_t sq_id, uint16_t cq_id, uint16_t qsize, uint8_t contig, void *buffer);
-int dnvme_identify_ctrl(int fd, uint16_t ctrl_id, uint8_t *buffer);
-int dnvme_identify_ns(int fd, uint16_t ctrl_id, uint32_t nsid, uint8_t *buffer);
+int dnvme_admin_create_admin_cq(int fd);
+int dnvme_admin_create_admin_sq(int fd);
+int dnvme_admin_create_iocq(int fd, uint16_t cq_id, uint16_t irq_no, uint16_t qsize, uint8_t contig, void *buffer);
+int dnvme_admin_create_iosq(int fd, uint16_t sq_id, uint16_t cq_id, uint16_t qsize, uint8_t contig, void *buffer);
+int dnvme_admin_identify_ctrl(int fd, uint16_t ctrl_id, uint8_t *buffer);
+int dnvme_admin_identify_ns(int fd, uint16_t ctrl_id, uint32_t nsid, uint8_t *buffer);
+int dnvme_admin_abort(int fd, uint16_t sq_id, uint16_t cmd_id);
+
+int dnvme_cq_remain(int fd, uint16_t q_id);
+int dnvme_cq_reap(int fd, uint16_t q_id, uint16_t remaining, uint8_t *buffer, uint32_t size);
+
 
 #endif
 

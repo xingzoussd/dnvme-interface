@@ -21,14 +21,15 @@ int ioctl_create_iosq(int fd, struct nvme_create_sq *cmd, uint8_t contig);
 int ioctl_delete_ioq(int fd, struct nvme_del_q *cmd);
 
 int ioctl_identify(int fd, struct nvme_identify *cmd);
-
+int ioctl_abort(int fd, struct nvme_abort *cmd);
 
 
 
 
 
 int ioctl_ring_doorbell(int fd, uint16_t sq_id);
-
+int ioctl_cq_remain(int fd, uint16_t q_id);
+int ioctl_cq_reap(int fd, uint16_t q_id, uint16_t remaining, uint8_t *buffer, uint32_t size);
 
 
 #endif
