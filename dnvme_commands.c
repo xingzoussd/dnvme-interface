@@ -274,16 +274,44 @@ int dnvme_admin_abort(int fd, uint16_t sq_id, uint16_t cmd_id)
     return ioctl_abort(fd, &cmd);
 }
 
-int dnvme_admin_set_feature(int fd, struct nvme_64b_send *cmd)
+int dnvme_admin_set_feature(int fd, uint32_t nsid, uint16_t feature_id, uint8_t save, uint32_t dw11, uint8_t *buffer, uint32_t buffer_size)
 {
-    int ret = 0;
-    return ret;
+    struct nvme_set_feature cmd = {
+        .opcode = NVME_ADMIN_SET_FEATURE,
+        .nsid = nsid,
+        .dw10 = {
+            .feature_id = feature_id,
+            .save = save,
+        },
+        .dw11 = dw11,
+        .prp1 = (uint64_t)buffer,
+    };
+    return ioctl_set_feature(fd, &cmd, buffer_size);
 }
 
-int dnvme_admin_get_feature(int fd, struct nvme_64b_send *cmd)
+int dnvme_set_power_state(int fd, uint32_t nsid, uint8_t save, uint8_t ps, uint8_t wh)
 {
-    int ret = 0;
-    return ret;
+    uint32_t dw11 = (ps&0x1F)|((wh&0x7)<<5);
+    return dnvme_admin_set_feature(fd, nsid, NVME_FEATURE_POWER_MANAGEMENT, save, dw11, NULL, 0);
+}
+
+int dnvme_admin_get_feature(int fd, uint32_t nsid, uint16_t feature_id, uint8_t select, uint8_t *buffer, uint32_t buffer_size)
+{
+    struct nvme_get_feature cmd = {
+        .opcode = NVME_ADMIN_GET_FEATURE,
+        .nsid = nsid,
+        .dw10 = {
+            .feature_id = feature_id,
+            .select = select,
+        },
+        .prp1 = (uint64_t)buffer,
+    };
+    return ioctl_get_feature(fd, &cmd, buffer_size);
+}
+
+int dnvme_get_power_state(int fd, uint32_t nsid, uint8_t select)
+{
+    return dnvme_admin_get_feature(fd, nsid, NVME_FEATURE_POWER_MANAGEMENT, select, NULL, 0);
 }
 
 int dnvme_admin_async_event_request(int fd, struct nvme_64b_send *cmd)

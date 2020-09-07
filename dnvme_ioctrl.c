@@ -91,9 +91,6 @@ int ioctl_delete_ioq(int fd, struct nvme_del_q *cmd)
         .q_id = 0,
         .bit_mask = MASK_NON_PRP,
         .cmd_buf_ptr = (uint8_t *)cmd,
-        .data_buf_size = 0,
-        .data_buf_ptr = NULL,
-        .data_dir = DATA_DIR_FROM_DEVICE,
     };
     return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
 }
@@ -133,6 +130,31 @@ int ioctl_abort(int fd, struct nvme_abort *cmd)
     return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
 }
 
+int ioctl_set_feature(int fd, struct nvme_set_feature *cmd, uint32_t buffer_size)
+{
+    struct nvme_64b_send user_cmd = {
+        .q_id = 0,
+        .bit_mask = MASK_PRP1_PAGE,
+        .cmd_buf_ptr = (uint8_t *)cmd,
+        .data_buf_size = buffer_size,
+        .data_buf_ptr = (uint8_t *)cmd->prp1,
+        .data_dir = DATA_DIR_TO_DEVICE,
+    };
+    return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
+}
+
+int ioctl_get_feature(int fd, struct nvme_get_feature *cmd, uint32_t buffer_size)
+{
+    struct nvme_64b_send user_cmd = {
+        .q_id = 0,
+        .bit_mask = MASK_PRP1_PAGE,
+        .cmd_buf_ptr = (uint8_t *)cmd,
+        .data_buf_size = buffer_size,
+        .data_buf_ptr = (uint8_t *)cmd->prp1,
+        .data_dir = DATA_DIR_FROM_DEVICE,
+    };
+    return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
+}
 
 
 int ioctl_ring_doorbell(int fd, uint16_t sq_id)

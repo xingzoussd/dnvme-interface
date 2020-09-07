@@ -22,7 +22,8 @@ int ioctl_delete_ioq(int fd, struct nvme_del_q *cmd);
 
 int ioctl_identify(int fd, struct nvme_identify *cmd);
 int ioctl_abort(int fd, struct nvme_abort *cmd);
-
+int ioctl_set_feature(int fd, struct nvme_set_feature *cmd, uint32_t buffer_size);
+int ioctl_get_feature(int fd, struct nvme_get_feature *cmd, uint32_t buffer_size);
 
 
 

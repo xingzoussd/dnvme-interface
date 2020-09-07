@@ -96,6 +96,16 @@ int main(int argc, char *argv[])
     ret = dnvme_admin_identify_ctrl(fd, 0, identify_ctrl_buffer);
     ret = dnvme_admin_identify_ns(fd, 0, 1, identify_ns_buffer);
     ret = dnvme_admin_abort(fd, 0, NVME_ADMIN_IDENTIFY);
+    ret = dnvme_set_power_state(fd, NVME_NSID_ALL, 0, 0, 0);
+    ret = dnvme_get_power_state(fd, NVME_NSID_ALL, 0);
+    ret = dnvme_set_power_state(fd, NVME_NSID_ALL, 0, 1, 0);
+    ret = dnvme_get_power_state(fd, NVME_NSID_ALL, 0);
+    ret = dnvme_set_power_state(fd, NVME_NSID_ALL, 0, 2, 0);
+    ret = dnvme_get_power_state(fd, NVME_NSID_ALL, 0);
+    ret = dnvme_set_power_state(fd, NVME_NSID_ALL, 0, 3, 0);
+    ret = dnvme_get_power_state(fd, NVME_NSID_ALL, 0);
+    ret = dnvme_set_power_state(fd, NVME_NSID_ALL, 0, 4, 0);
+    ret = dnvme_get_power_state(fd, NVME_NSID_ALL, 0);
     ret = ioctl_ring_doorbell(fd, 0);
     sleep(2);
     memcpy(&ctrl_info, identify_ctrl_buffer, sizeof(struct nvme_id_ctrl));
