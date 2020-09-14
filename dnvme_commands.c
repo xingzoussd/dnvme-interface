@@ -23,7 +23,7 @@ int open_dev(char *dev)
 {
     int err, fd;
     struct stat nvme_stat;
-    char *devicename = basename(dev);
+    //char *devicename = basename(dev);
     err = open(dev, O_RDONLY);
     if (err < 0)
     {
@@ -52,6 +52,11 @@ int dnvme_create_admin_cq(int fd)
 int dnvme_create_admin_sq(int fd)
 {
     return ioctl_create_admin_sq(fd);
+}
+
+int dnvme_ring_doorbell(int fd, uint16_t sq_id)
+{
+    return ioctl_ring_doorbell(fd, sq_id);
 }
 
 int malloc_4k_aligned_buffer(void **buffer, uint32_t element_size, uint32_t elements)
@@ -186,33 +191,35 @@ int dnvme_pcie_capability_write_dword(int fd, uint32_t offset, uint8_t *data)
 
 /************************************** Admin commands **************************************/
 
-int dnvme_admin_create_iocq(int fd, uint16_t cq_id, uint16_t irq_no, uint16_t qsize, uint8_t contig, void *buffer)
+int dnvme_admin_create_iocq(int fd, uint16_t cq_id, uint16_t int_no, uint16_t qsize, uint8_t contig, void *buffer)
 {
-    struct nvme_create_cq cmd = {
+    struct nvme_admin_cmd cmd = {
         .opcode = NVME_ADMIN_CREATE_IOCQ,
         .flags = 0,
         .prp1 = (uint64_t)buffer,
-        .cqid = cq_id,
-        .qsize = qsize,
-        .cq_flags = 1,
-        .irq_no = irq_no,
+        .cdw10.create_iocq.qid = cq_id,
+        .cdw10.create_iocq.qsize = qsize,
+        .cdw11.create_iocq.int_en = 1,
+        .cdw11.create_iocq.int_no = int_no,
+        .cdw11.create_iocq.contig= contig,
     };
-    int ret = ioctl_create_iocq(fd, &cmd, contig);
+    int ret = ioctl_create_iocq(fd, &cmd);
     return ret;
 }
 
 int dnvme_admin_create_iosq(int fd, uint16_t sq_id, uint16_t cq_id, uint16_t qsize, uint8_t contig, void *buffer)
 {
-    struct nvme_create_sq cmd = {
+    struct nvme_admin_cmd cmd = {
         .opcode = NVME_ADMIN_CREATE_IOSQ,
         .flags = 0,
         .prp1 = (uint64_t)buffer,
-        .sqid = sq_id,
-        .qsize = qsize,
-        .sq_flags = 1,
-        .cqid = cq_id,
+        .cdw10.create_iosq.qid = sq_id,
+        .cdw10.create_iosq.qsize = qsize,
+        .cdw11.create_iosq.contig = contig,
+        .cdw11.create_iosq.qprio = 1,
+        .cdw11.create_iosq.cq_id = cq_id,
     };
-    int ret = ioctl_create_iosq(fd, &cmd, contig);
+    int ret = ioctl_create_iosq(fd, &cmd);
     return ret;
 }
 

@@ -42,45 +42,47 @@ int ioctl_create_admin_sq(int fd)
     return ioctl(fd, NVME_IOCTL_CREATE_ADMN_Q, &cmd);
 }
 
-int ioctl_create_iocq(int fd, struct nvme_create_cq *cmd, uint8_t contig)
+int ioctl_create_iocq(int fd, struct nvme_admin_cmd *cmd)
 {
     struct nvme_prep_cq prep_cmd = {
-        .elements = cmd->qsize,
-        .cq_id = cmd->cqid,
-        .contig = contig,
+        .elements = cmd->cdw10.create_iosq.qsize,
+        .cq_id = cmd->cdw10.create_iosq.qid,
+        .contig = cmd->cdw11.create_iosq.contig,
     };
     struct nvme_64b_send user_cmd = {
         .q_id = 0,
         .bit_mask = MASK_PRP1_PAGE,
         .cmd_buf_ptr = (uint8_t *)cmd,
-        .data_buf_size = cmd->qsize*NVME_IOCQ_ELEMENT_SIZE,
+        .data_buf_size = cmd->cdw10.create_iocq.qsize*NVME_IOCQ_ELEMENT_SIZE,
         .data_buf_ptr = (uint8_t *)cmd->prp1,
         .data_dir = DATA_DIR_TO_DEVICE,
     };
     int ret = ioctl(fd, NVME_IOCTL_PREPARE_CQ_CREATION, &prep_cmd);
-    if (ret) return ret;
+    if (ret)
+        return ret;
     ret = ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
     return ret;
 }
 
-int ioctl_create_iosq(int fd, struct nvme_create_sq *cmd, uint8_t contig)
+int ioctl_create_iosq(int fd, struct nvme_admin_cmd *cmd)
 {
     struct nvme_prep_sq prep_cmd = {
-        .elements = cmd->qsize,
-        .sq_id = cmd->sqid,
-        .cq_id = cmd->cqid,
-        .contig = contig,
+        .elements = cmd->cdw10.create_iosq.qsize,
+        .sq_id = cmd->cdw10.create_iosq.qid,
+        .cq_id = cmd->cdw11.create_iosq.cq_id,
+        .contig = cmd->cdw11.create_iosq.contig,
     };
     struct nvme_64b_send user_cmd = {
         .q_id = 0,
         .bit_mask = MASK_PRP1_PAGE,
         .cmd_buf_ptr = (uint8_t *)cmd,
-        .data_buf_size = cmd->qsize*NVME_IOSQ_ELEMENT_SIZE,
+        .data_buf_size = cmd->cdw10.create_iosq.qsize*NVME_IOSQ_ELEMENT_SIZE,
         .data_buf_ptr = (uint8_t *)cmd->prp1,
         .data_dir = DATA_DIR_TO_DEVICE,
     };
     int ret = ioctl(fd, NVME_IOCTL_PREPARE_SQ_CREATION, &prep_cmd);
-    if (ret) return ret;
+    if (ret)
+        return ret;
     ret = ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
     return ret;
 }

@@ -398,9 +398,9 @@ struct nvme_admin_cmd {
         uint32_t value;
         struct {
             uint32_t contig: 1;
-            uint32_t int_enable: 1;
+            uint32_t int_en: 1;
             uint32_t rsvd: 14;
-            uint32_t int_vec: 16;
+            uint32_t int_no: 16;
         } create_iocq;
         struct {
             uint32_t contig: 1;
@@ -661,19 +661,19 @@ struct nvme_create_cq {
 /**
  * Specific structure for Create SQ command
  */
-struct nvme_create_sq {
-    uint8_t  opcode;
-    uint8_t  flags;
-    uint16_t command_id;
-    uint32_t rsvd1[5];
-    uint64_t prp1;
-    uint64_t rsvd8;
-    uint16_t sqid;
-    uint16_t qsize;
-    uint16_t sq_flags;
-    uint16_t cqid;
-    uint32_t rsvd12[4];
-};
+//struct nvme_create_sq {
+//    uint8_t  opcode;
+//    uint8_t  flags;
+//    uint16_t command_id;
+//    uint32_t rsvd1[5];
+//    uint64_t prp1;
+//    uint64_t rsvd8;
+//    uint16_t sqid;
+//    uint16_t qsize;
+//    uint16_t sq_flags;
+//    uint16_t cqid;
+//    uint32_t rsvd12[4];
+//};
 
 /**
  * Specific structure for Delete Q command
