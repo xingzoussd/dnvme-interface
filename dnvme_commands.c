@@ -54,6 +54,15 @@ int dnvme_create_admin_sq(int fd)
     return ioctl_create_admin_sq(fd);
 }
 
+int dnvme_set_irq(int fd, uint16_t num_irqs, enum nvme_irq_type irq_type)
+{
+    struct interrupts irqs = {
+        .num_irqs = num_irqs,
+        .irq_type = irq_type,
+    };
+    return ioctl_set_irq(fd, &irqs);
+}
+
 int dnvme_ring_doorbell(int fd, uint16_t sq_id)
 {
     return ioctl_ring_doorbell(fd, sq_id);
@@ -98,14 +107,14 @@ int dnvme_controller_reg_read_byte(int fd, uint32_t offset, uint8_t *data)
     return dnvme_controller_reg_read_block(fd, offset, 1, data);
 }
 
-int dnvme_controller_reg_read_word(int fd, uint32_t offset, uint8_t *data)
+int dnvme_controller_reg_read_word(int fd, uint32_t offset, uint16_t *data)
 {
-    return dnvme_controller_reg_read_block(fd, offset, 2, data);
+    return dnvme_controller_reg_read_block(fd, offset, 2, (uint8_t *)data);
 }
 
-int dnvme_controller_reg_read_dword(int fd, uint32_t offset, uint8_t *data)
+int dnvme_controller_reg_read_dword(int fd, uint32_t offset, uint32_t *data)
 {
-    return dnvme_controller_reg_read_block(fd, offset, 4, data);
+    return dnvme_controller_reg_read_block(fd, offset, 4, (uint8_t *)data);
 }
 
 int dnvme_controller_reg_write_block(int fd, uint32_t offset, uint32_t bytes, uint8_t *data)
@@ -125,14 +134,23 @@ int dnvme_controller_reg_write_byte(int fd, uint32_t offset, uint8_t *data)
     return dnvme_controller_reg_write_block(fd, offset, 1, data);
 }
 
-int dnvme_controller_reg_write_word(int fd, uint32_t offset, uint8_t *data)
+int dnvme_controller_reg_write_word(int fd, uint32_t offset, uint16_t *data)
 {
-    return dnvme_controller_reg_write_block(fd, offset, 2, data);
+    return dnvme_controller_reg_write_block(fd, offset, 2, (uint8_t *)data);
 }
 
-int dnvme_controller_reg_write_dword(int fd, uint32_t offset, uint8_t *data)
+int dnvme_controller_reg_write_dword(int fd, uint32_t offset, uint32_t *data)
 {
-    return dnvme_controller_reg_write_block(fd, offset, 4, data);
+    return dnvme_controller_reg_write_block(fd, offset, 4, (uint8_t *)data);
+}
+
+uint32_t dnvme_controller_get_ctrl_status(int fd)
+{
+    uint32_t cc = 0;
+    int ret = dnvme_controller_reg_read_dword(fd, NVME_REG_CC, &cc);
+    if (ret)
+        return ret<0?ret:(-ret);
+    retirn cc;
 }
 
 int dnvme_pcie_capability_read_block(int fd, uint32_t offset, uint32_t bytes, uint8_t *data)
@@ -152,14 +170,14 @@ int dnvme_pcie_capability_read_byte(int fd, uint32_t offset, uint8_t *data)
     return dnvme_pcie_capability_read_block(fd, offset, 1, data);
 }
 
-int dnvme_pcie_capability_read_word(int fd, uint32_t offset, uint8_t *data)
+int dnvme_pcie_capability_read_word(int fd, uint32_t offset, uint16_t *data)
 {
-    return dnvme_pcie_capability_read_block(fd, offset, 2, data);
+    return dnvme_pcie_capability_read_block(fd, offset, 2, (uint8_t *)data);
 }
 
-int dnvme_pcie_capability_read_dword(int fd, uint32_t offset, uint8_t *data)
+int dnvme_pcie_capability_read_dword(int fd, uint32_t offset, uint32_t *data)
 {
-    return dnvme_pcie_capability_read_block(fd, offset, 4, data);
+    return dnvme_pcie_capability_read_block(fd, offset, 4, (uint8_t *)data);
 }
 
 int dnvme_pcie_capability_write_block(int fd, uint32_t offset, uint32_t bytes, uint8_t *data)
@@ -179,14 +197,50 @@ int dnvme_pcie_capability_write_byte(int fd, uint32_t offset, uint8_t *data)
     return dnvme_pcie_capability_write_block(fd, offset, 1, data);
 }
 
-int dnvme_pcie_capability_write_word(int fd, uint32_t offset, uint8_t *data)
+int dnvme_pcie_capability_write_word(int fd, uint32_t offset, uint16_t *data)
 {
-    return dnvme_pcie_capability_write_block(fd, offset, 2, data);
+    return dnvme_pcie_capability_write_block(fd, offset, 2, (uint8_t *)data);
 }
 
-int dnvme_pcie_capability_write_dword(int fd, uint32_t offset, uint8_t *data)
+int dnvme_pcie_capability_write_dword(int fd, uint32_t offset, uint32_t *data)
 {
-    return dnvme_pcie_capability_write_block(fd, offset, 4, data);
+    return dnvme_pcie_capability_write_block(fd, offset, 4, (uint8_t *)data);
+}
+
+uint16_t dnvme_pcie_msix_capability(int fd)
+{
+    uint16_t offset = 0x50;
+    return offset;
+}
+
+uint16_t dnvme_pcie_msix_get_ctrl(int fd, uint16_t msix_cap)
+{
+    uint16_t value;
+    int ret = dnvme_pcie_capability_read_word(fd, msix_cap+2, &value);
+    if (ret)
+        return ret<0?ret:(-ret);
+    return value;
+}
+
+void dnvme_pcie_msix_set_ctrl(int fd, uint16_t msix_cap, uint16_t value)
+{
+    int ret = dnvme_pcie_capability_write_word(fd, msix_cap+2, &value);
+    if (ret)
+        exit(-1);
+}
+
+uint16_t dnvme_pcie_msix_get_entry_count(int fd, uint16_t msix_cap)
+{
+    uint16_t msix_ctrl = dnvme_pcie_msix_get_ctrl(fd, msix_cap);
+    uint16_t msix_entry_count = (msix_ctrl&0x3F)+1;
+    return msix_entry_count;
+}
+
+void dnvme_pcie_msix_enable(int fd, uint16_t msix_cap)
+{
+    uint16_t msix_ctrl = dnvme_pcie_msix_get_ctrl(fd, msix_cap);
+    uint16_t value = msix_ctrl|0x80;
+    dnvme_pcie_msix_set_ctrl(fd, msix_cap, value);
 }
 
 /************************************** Admin commands **************************************/
@@ -225,18 +279,18 @@ int dnvme_admin_create_iosq(int fd, uint16_t sq_id, uint16_t cq_id, uint16_t qsi
 
 int dnvme_admin_delete_iosq(int fd, uint16_t sq_id)
 {
-    struct nvme_del_q cmd = {
+    struct nvme_admin_cmd cmd = {
         .opcode = NVME_ADMIN_DELETE_IOSQ,
-        .qid = sq_id,
+        .cdw10.del_ioq.qid = sq_id,
     };
     return ioctl_delete_ioq(fd, &cmd);
 }
 
 int dnvme_admin_delete_iocq(int fd, uint16_t cq_id)
 {
-    struct nvme_del_q cmd = {
+    struct nvme_admin_cmd cmd = {
         .opcode = NVME_ADMIN_DELETE_IOCQ,
-        .qid = cq_id,
+        .cdw10.del_ioq.qid = cq_id,
     };
     return ioctl_delete_ioq(fd, &cmd);
 }
@@ -249,34 +303,34 @@ int dnvme_admin_get_log_page(int fd, struct nvme_64b_send *cmd)
 
 int dnvme_admin_identify_ctrl(int fd, uint16_t ctrl_id, uint8_t *buffer)
 {
-    struct nvme_identify cmd = {
+    struct nvme_admin_cmd cmd = {
         .opcode = NVME_ADMIN_IDENTIFY,
         .nsid = 0,
-        .cns = NVME_ID_CNS_CTRL,
-        .ctrl_id = 0,
         .prp1 = (uint64_t)buffer,
+        .cdw10.identify.cns = NVME_ID_CNS_CTRL,
+        .cdw10.identify.ctrl_id = 0,
     };
     return ioctl_identify(fd, &cmd);
 }
 
 int dnvme_admin_identify_ns(int fd, uint16_t ctrl_id, uint32_t nsid, uint8_t *buffer)
 {
-    struct nvme_identify cmd = {
+    struct nvme_admin_cmd cmd = {
         .opcode = NVME_ADMIN_IDENTIFY,
         .nsid = nsid,
-        .cns = NVME_ID_CNS_NS,
-        .ctrl_id = ctrl_id,
         .prp1 = (uint64_t)buffer,
+        .cdw10.identify.cns = NVME_ID_CNS_NS,
+        .cdw10.identify.ctrl_id = ctrl_id,
     };
     return ioctl_identify(fd, &cmd);
 }
 
 int dnvme_admin_abort(int fd, uint16_t sq_id, uint16_t cmd_id)
 {
-    struct nvme_abort cmd = {
+    struct nvme_admin_cmd cmd = {
         .opcode = NVME_ADMIN_ABORT,
-        .sq_id = sq_id,
-        .cmd_id = cmd_id,
+        .cdw10.abort.sq_id = sq_id,
+        .cdw10.abort.cmd_id = cmd_id,
     };
     return ioctl_abort(fd, &cmd);
 }

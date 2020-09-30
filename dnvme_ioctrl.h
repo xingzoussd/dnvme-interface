@@ -18,16 +18,17 @@ int ioctl_create_admin_cq(int fd);
 int ioctl_create_admin_sq(int fd);
 int ioctl_create_iocq(int fd, struct nvme_admin_cmd *cmd);
 int ioctl_create_iosq(int fd, struct nvme_admin_cmd *cmd);
-int ioctl_delete_ioq(int fd, struct nvme_del_q *cmd);
+int ioctl_delete_ioq(int fd, struct nvme_admin_cmd *cmd);
 
-int ioctl_identify(int fd, struct nvme_identify *cmd);
-int ioctl_abort(int fd, struct nvme_abort *cmd);
+int ioctl_identify(int fd, struct nvme_admin_cmd *cmd);
+int ioctl_get_log_page(int fd, struct nvme_admin_cmd *cmd);
+int ioctl_abort(int fd, struct nvme_admin_cmd *cmd);
 int ioctl_set_feature(int fd, struct nvme_set_feature *cmd, uint32_t buffer_size);
 int ioctl_get_feature(int fd, struct nvme_get_feature *cmd, uint32_t buffer_size);
 
 
 
-
+int ioctl_set_irq(int fd, struct interrupts *irq);
 int ioctl_ring_doorbell(int fd, uint16_t sq_id);
 int ioctl_cq_remain(int fd, uint16_t q_id);
 int ioctl_cq_reap(int fd, uint16_t q_id, uint16_t remaining, uint8_t *buffer, uint32_t size);

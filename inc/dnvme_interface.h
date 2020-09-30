@@ -345,7 +345,7 @@ struct nvme_admin_cmd {
         struct {
             uint8_t cns;
             uint8_t rsvd;
-            uint16_t crtl_id;
+            uint16_t ctrl_id;
         } identify;
         struct {
             uint32_t select: 4;

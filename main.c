@@ -41,24 +41,21 @@ int show_pcie_capability(int fd)
 
 int show_cc(int fd)
 {
-    uint32_t bytes = 0x4;
-    uint8_t *data = (uint8_t*)malloc(sizeof(char)*bytes);
-    int ret = dnvme_controller_reg_read_dword(fd, 0x14, data);
+    uint32_t data = 0;
+    int ret = dnvme_controller_reg_read_dword(fd, 0x14, &data);
     if (ret)
         return ret;
-    printf("CC = 0x%08x\n", *(uint32_t*)data);
-    free(data);
+    printf("CC = 0x%08x\n", data);
     return 0;
 }
 
 int show_csts(int fd)
 {
-    uint32_t bytes = 0x4;
-    uint8_t *data = (uint8_t*)malloc(sizeof(char)*bytes);
-    int ret = dnvme_controller_reg_read_dword(fd, 0x1C, data);
+    uint32_t data = 0;
+    int ret = dnvme_controller_reg_read_dword(fd, 0x1C, &data);
     if (ret)
         return ret;
-    printf("CSTS = 0x%08x\n", *(uint32_t*)data);
+    printf("CSTS = 0x%08x\n", data);
     return 0;
 }
 
@@ -70,6 +67,8 @@ int main(int argc, char *argv[])
     uint16_t sq_id = 1;
     uint16_t irq_no = 1;
     uint8_t contig = 1;
+    uint16_t msix_cap = 0;
+    uint16_t msix_entry_count = 0;
     void *iocq_buffer = NULL;
     void *iosq_buffer = NULL;
     void *identify_ctrl_buffer = NULL;
@@ -86,6 +85,14 @@ int main(int argc, char *argv[])
         exit(-1);
     }
     printf("Device File Successfully Opened = %d\n", fd);
+    msix_cap = dnvme_pcie_msix_capability(fd);
+    msix_entry_count = dnvme_pcie_msix_get_entry_count(fd, msix_cap);
+    dnvme_controller_disable(fd);
+    ret = dnvme_set_irq(fd, msix_entry_count, INT_MSIX);
+    dnvme_pcie_msix_enable(fd, msix_cap);
+    dnvme_controller_enable(fd);
+    if (ret)
+        return ret;
     ret = malloc_4k_aligned_buffer(&iocq_buffer, NVME_IOCQ_ELEMENT_SIZE, qsize);
     if (ret)
         return ret;

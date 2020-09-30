@@ -20,6 +20,7 @@ enum malloc_buffer_type {
 int open_dev(char *dev);
 int dnvme_create_admin_cq(int fd);
 int dnvme_create_admin_sq(int fd);
+int dnvme_set_irq(int fd, uint16_t num_irqs, enum nvme_irq_type irq_type);
 int dnvme_ring_doorbell(int fd, uint16_t sq_id);
 int malloc_4k_aligned_buffer(void **buffer, uint32_t element_size, uint32_t elements);
 
@@ -27,20 +28,23 @@ int dnvme_controller_enable(int fd);
 int dnvme_controller_disable(int fd);
 int dnvme_controller_reg_read_block(int fd, uint32_t offset, uint32_t bytes, uint8_t *data);
 int dnvme_controller_reg_read_byte(int fd, uint32_t offset, uint8_t *data);
-int dnvme_controller_reg_read_word(int fd, uint32_t offset, uint8_t *data);
-int dnvme_controller_reg_read_dword(int fd, uint32_t offset, uint8_t *data);
+int dnvme_controller_reg_read_word(int fd, uint32_t offset, uint16_t *data);
+int dnvme_controller_reg_read_dword(int fd, uint32_t offset, uint32_t *data);
 int dnvme_controller_reg_write_block(int fd, uint32_t offset, uint32_t bytes, uint8_t *data);
 int dnvme_controller_reg_write_byte(int fd, uint32_t offset, uint8_t *data);
-int dnvme_controller_reg_write_word(int fd, uint32_t offset, uint8_t *data);
-int dnvme_controller_reg_write_dword(int fd, uint32_t offset, uint8_t *data);
+int dnvme_controller_reg_write_word(int fd, uint32_t offset, uint16_t *data);
+int dnvme_controller_reg_write_dword(int fd, uint32_t offset, uint32_t *data);
 int dnvme_pcie_capability_read_block(int fd, uint32_t offset, uint32_t bytes, uint8_t *data);
 int dnvme_pcie_capability_read_byte(int fd, uint32_t offset, uint8_t *data);
-int dnvme_pcie_capability_read_word(int fd, uint32_t offset, uint8_t *data);
-int dnvme_pcie_capability_read_dword(int fd, uint32_t offset, uint8_t *data);
+int dnvme_pcie_capability_read_word(int fd, uint32_t offset, uint16_t *data);
+int dnvme_pcie_capability_read_dword(int fd, uint32_t offset, uint32_t *data);
 int dnvme_pcie_capability_write_block(int fd, uint32_t offset, uint32_t bytes, uint8_t *data);
 int dnvme_pcie_capability_write_byte(int fd, uint32_t offset, uint8_t *data);
-int dnvme_pcie_capability_write_word(int fd, uint32_t offset, uint8_t *data);
-int dnvme_pcie_capability_write_dword(int fd, uint32_t offset, uint8_t *data);
+int dnvme_pcie_capability_write_word(int fd, uint32_t offset, uint16_t *data);
+int dnvme_pcie_capability_write_dword(int fd, uint32_t offset, uint32_t *data);
+uint16_t dnvme_pcie_msix_capability(int fd);
+uint16_t dnvme_pcie_msix_get_entry_count(int fd, uint16_t msix_cap);
+void dnvme_pcie_msix_enable(int fd, uint16_t msix_cap);
 
 
 int dnvme_admin_create_iocq(int fd, uint16_t cq_id, uint16_t int_no, uint16_t qsize, uint8_t contig, void *buffer);

@@ -87,7 +87,7 @@ int ioctl_create_iosq(int fd, struct nvme_admin_cmd *cmd)
     return ret;
 }
 
-int ioctl_delete_ioq(int fd, struct nvme_del_q *cmd)
+int ioctl_delete_ioq(int fd, struct nvme_admin_cmd *cmd)
 {
     struct nvme_64b_send user_cmd = {
         .q_id = 0,
@@ -97,7 +97,7 @@ int ioctl_delete_ioq(int fd, struct nvme_del_q *cmd)
     return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
 }
 
-int ioctl_get_log_page(int fd, struct nvme_get_log_page *cmd)
+int ioctl_get_log_page(int fd, struct nvme_admin_cmd *cmd)
 {
     struct nvme_64b_send user_cmd = {
         .q_id = 0,
@@ -110,7 +110,7 @@ int ioctl_get_log_page(int fd, struct nvme_get_log_page *cmd)
     return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
 }
 
-int ioctl_identify(int fd, struct nvme_identify *cmd)
+int ioctl_identify(int fd, struct nvme_admin_cmd *cmd)
 {
     struct nvme_64b_send user_cmd = {
         .q_id = 0,
@@ -123,7 +123,7 @@ int ioctl_identify(int fd, struct nvme_identify *cmd)
     return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
 }
 
-int ioctl_abort(int fd, struct nvme_abort *cmd)
+int ioctl_abort(int fd, struct nvme_admin_cmd *cmd)
 {
     struct nvme_64b_send user_cmd = {
         .q_id = 0,
@@ -158,6 +158,10 @@ int ioctl_get_feature(int fd, struct nvme_get_feature *cmd, uint32_t buffer_size
     return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
 }
 
+int ioctl_set_irq(int fd, struct interrupts *irq)
+{
+    return ioctl(fd, NVME_IOCTL_SET_IRQ, irq);
+}
 
 int ioctl_ring_doorbell(int fd, uint16_t sq_id)
 {
