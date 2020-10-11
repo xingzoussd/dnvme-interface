@@ -132,7 +132,7 @@ int ioctl_abort(int fd, struct nvme_admin_cmd *cmd)
     return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
 }
 
-int ioctl_set_feature(int fd, struct nvme_set_feature *cmd, uint32_t buffer_size)
+int ioctl_set_feature(int fd, struct nvme_admin_cmd *cmd, uint32_t buffer_size)
 {
     struct nvme_64b_send user_cmd = {
         .q_id = 0,
@@ -145,7 +145,7 @@ int ioctl_set_feature(int fd, struct nvme_set_feature *cmd, uint32_t buffer_size
     return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
 }
 
-int ioctl_get_feature(int fd, struct nvme_get_feature *cmd, uint32_t buffer_size)
+int ioctl_get_feature(int fd, struct nvme_admin_cmd *cmd, uint32_t buffer_size)
 {
     struct nvme_64b_send user_cmd = {
         .q_id = 0,

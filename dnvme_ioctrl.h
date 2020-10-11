@@ -23,8 +23,8 @@ int ioctl_delete_ioq(int fd, struct nvme_admin_cmd *cmd);
 int ioctl_identify(int fd, struct nvme_admin_cmd *cmd);
 int ioctl_get_log_page(int fd, struct nvme_admin_cmd *cmd);
 int ioctl_abort(int fd, struct nvme_admin_cmd *cmd);
-int ioctl_set_feature(int fd, struct nvme_set_feature *cmd, uint32_t buffer_size);
-int ioctl_get_feature(int fd, struct nvme_get_feature *cmd, uint32_t buffer_size);
+int ioctl_set_feature(int fd, struct nvme_admin_cmd *cmd, uint32_t buffer_size);
+int ioctl_get_feature(int fd, struct nvme_admin_cmd *cmd, uint32_t buffer_size);
 
 
 
@@ -33,6 +33,7 @@ int ioctl_ring_doorbell(int fd, uint16_t sq_id);
 int ioctl_cq_remain(int fd, uint16_t q_id);
 int ioctl_cq_reap(int fd, uint16_t q_id, uint16_t remaining, uint8_t *buffer, uint32_t size);
 
-
+void ioctl_drive_metrics(int fd);
+void ioctl_device_metrics(int fd);
 #endif
 

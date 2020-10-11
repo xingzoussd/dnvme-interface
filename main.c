@@ -22,6 +22,7 @@
 #include <sys/mman.h>
 
 #include "dnvme.h"
+#include "dnvme_ioctrl.h"
 #include "dnvme_commands.h"
 #include "dnvme_show.h"
 
@@ -87,10 +88,17 @@ int main(int argc, char *argv[])
     printf("Device File Successfully Opened = %d\n", fd);
     msix_cap = dnvme_pcie_msix_capability(fd);
     msix_entry_count = dnvme_pcie_msix_get_entry_count(fd, msix_cap);
+    ioctl_device_metrics(fd);
     dnvme_controller_disable(fd);
     ret = dnvme_set_irq(fd, msix_entry_count, INT_MSIX);
-    dnvme_pcie_msix_enable(fd, msix_cap);
+    if (ret<0)
+        printf("Set IRQ MSIX failed.\n");
+    else
+        printf("Set IRQ MSIX successfully.\n");
+    //dnvme_pcie_msix_enable(fd, msix_cap);
     dnvme_controller_enable(fd);
+    dnvme_pcie_msix_enable(fd, msix_cap);
+    ioctl_device_metrics(fd);
     if (ret)
         return ret;
     ret = malloc_4k_aligned_buffer(&iocq_buffer, NVME_IOCQ_ELEMENT_SIZE, qsize);
@@ -106,6 +114,7 @@ int main(int argc, char *argv[])
     if (ret)
         return ret;
     ret = dnvme_controller_disable(fd);
+    ret = dnvme_set_irq(fd, msix_entry_count, INT_MSIX);
     if (ret)
         return ret;
     ret = dnvme_create_admin_cq(fd);
@@ -117,8 +126,6 @@ int main(int argc, char *argv[])
     ret = dnvme_controller_enable(fd);
     if (ret)
         return ret;
-    //ioctl_drive_metrics(fd);
-    //ioctl_device_metrics(fd);
     ret = show_pcie_capability(fd);
     if (ret)
         return ret;
@@ -128,6 +135,8 @@ int main(int argc, char *argv[])
     ret = show_csts(fd);
     if (ret)
         return ret;
+    dnvme_pcie_msix_enable(fd, msix_cap);
+    ioctl_device_metrics(fd);
     ret = dnvme_admin_create_iocq(fd, cq_id, irq_no, qsize, contig, iocq_buffer);
     if (ret)
         return ret;
