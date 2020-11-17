@@ -52,9 +52,31 @@ int dnvme_admin_create_iosq(int fd, uint16_t sq_id, uint16_t cq_id, uint16_t qsi
 int dnvme_admin_identify_ctrl(int fd, uint16_t ctrl_id, uint8_t *buffer);
 int dnvme_admin_identify_ns(int fd, uint16_t ctrl_id, uint32_t nsid, uint8_t *buffer);
 int dnvme_admin_abort(int fd, uint16_t sq_id, uint16_t cmd_id);
-int dnvme_admin_set_feature(int fd, uint32_t nsid, uint16_t feature_id, uint8_t save, uint32_t dw11, uint8_t *buffer, uint32_t buffer_size);
+int dnvme_admin_set_feature(
+    int fd,
+    uint32_t nsid,
+    uint16_t feature_id,
+    uint8_t save,
+    union dw11_u dw11,
+    union dw12_u dw12,
+    union dw13_u dw13,
+    union dw14_u dw14,
+    union dw15_u dw15,
+    uint8_t *buffer,
+    uint32_t buffer_size);
 int dnvme_set_power_state(int fd, uint32_t nsid, uint8_t save, uint8_t ps, uint8_t wh);
-int dnvme_admin_get_feature(int fd, uint32_t nsid, uint16_t feature_id, uint8_t select, uint8_t *buffer, uint32_t buffer_size);
+int dnvme_admin_get_feature(
+    int fd,
+    uint32_t nsid,
+    uint16_t feature_id,
+    uint8_t select,
+    union dw11_u dw11,
+    union dw12_u dw12,
+    union dw13_u dw13,
+    union dw14_u dw14,
+    union dw15_u dw15,
+    uint8_t *buffer,
+    uint32_t buffer_size);
 int dnvme_get_power_state(int fd, uint32_t nsid, uint8_t select);
 
 

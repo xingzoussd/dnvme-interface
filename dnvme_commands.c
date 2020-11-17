@@ -335,14 +335,29 @@ int dnvme_admin_abort(int fd, uint16_t sq_id, uint16_t cmd_id)
     return ioctl_abort(fd, &cmd);
 }
 
-int dnvme_admin_set_feature(int fd, uint32_t nsid, uint16_t feature_id, uint8_t save, uint32_t dw11, uint8_t *buffer, uint32_t buffer_size)
+int dnvme_admin_set_feature(
+    int fd,
+    uint32_t nsid,
+    uint16_t feature_id,
+    uint8_t save,
+    union dw11_u dw11,
+    union dw12_u dw12,
+    union dw13_u dw13,
+    union dw14_u dw14,
+    union dw15_u dw15,
+    uint8_t *buffer,
+    uint32_t buffer_size)
 {
     struct nvme_admin_cmd cmd = {
         .opcode = NVME_ADMIN_SET_FEATURE,
         .nsid = nsid,
         .cdw10.set_feature.fid = feature_id,
         .cdw10.set_feature.save = save,
-        .cdw11.value = dw11,
+        .cdw11.value = dw11.value,
+        .cdw12.value = dw12.value,
+        .cdw13.value = dw13.value,
+        .cdw14.value = dw14.value,
+        .cdw15.value = dw15.value,
         .prp1 = (uint64_t)buffer,
     };
     return ioctl_set_feature(fd, &cmd, buffer_size);
@@ -350,17 +365,36 @@ int dnvme_admin_set_feature(int fd, uint32_t nsid, uint16_t feature_id, uint8_t 
 
 int dnvme_set_power_state(int fd, uint32_t nsid, uint8_t save, uint8_t ps, uint8_t wh)
 {
-    uint32_t dw11 = (ps&0x1F)|((wh&0x7)<<5);
+    union dw11_u dw11 = {
+        .feature.ps = ps,
+        .feature.wh = wh,
+    };
     return dnvme_admin_set_feature(fd, nsid, NVME_FEATURE_POWER_MANAGEMENT, save, dw11, NULL, 0);
 }
 
-int dnvme_admin_get_feature(int fd, uint32_t nsid, uint16_t feature_id, uint8_t select, uint8_t *buffer, uint32_t buffer_size)
+int dnvme_admin_get_feature(
+    int fd,
+    uint32_t nsid,
+    uint16_t feature_id,
+    uint8_t select,
+    union dw11_u dw11,
+    union dw12_u dw12,
+    union dw13_u dw13,
+    union dw14_u dw14,
+    union dw15_u dw15,
+    uint8_t *buffer,
+    uint32_t buffer_size)
 {
     struct nvme_admin_cmd cmd = {
         .opcode = NVME_ADMIN_GET_FEATURE,
         .nsid = nsid,
         .cdw10.get_feature.fid = feature_id,
         .cdw10.get_feature.select = select,
+        .cdw11.value = dw11.value,
+        .cdw12.value = dw12.value,
+        .cdw13.value = dw13.value,
+        .cdw14.value = dw14.value,
+        .cdw15.value = dw15.value,
         .prp1 = (uint64_t)buffer,
     };
     return ioctl_get_feature(fd, &cmd, buffer_size);

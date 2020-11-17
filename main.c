@@ -88,17 +88,17 @@ int main(int argc, char *argv[])
     printf("Device File Successfully Opened = %d\n", fd);
     msix_cap = dnvme_pcie_msix_capability(fd);
     msix_entry_count = dnvme_pcie_msix_get_entry_count(fd, msix_cap);
-    ioctl_device_metrics(fd);
-    dnvme_controller_disable(fd);
-    ret = dnvme_set_irq(fd, msix_entry_count, INT_MSIX);
-    if (ret<0)
-        printf("Set IRQ MSIX failed.\n");
-    else
-        printf("Set IRQ MSIX successfully.\n");
+    //ioctl_device_metrics(fd);
+    //dnvme_controller_disable(fd);
+    //ret = dnvme_set_irq(fd, msix_entry_count, INT_MSIX);
+    //if (ret<0)
+    //    printf("Set IRQ MSIX failed.\n");
+    //else
+    //    printf("Set IRQ MSIX successfully.\n");
+    ////dnvme_pcie_msix_enable(fd, msix_cap);
+    //dnvme_controller_enable(fd);
     //dnvme_pcie_msix_enable(fd, msix_cap);
-    dnvme_controller_enable(fd);
-    dnvme_pcie_msix_enable(fd, msix_cap);
-    ioctl_device_metrics(fd);
+    //ioctl_device_metrics(fd);
     if (ret)
         return ret;
     ret = malloc_4k_aligned_buffer(&iocq_buffer, NVME_IOCQ_ELEMENT_SIZE, qsize);

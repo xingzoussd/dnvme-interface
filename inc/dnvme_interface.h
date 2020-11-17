@@ -280,162 +280,163 @@ struct nvme_gen_cmd {
 };
 
 /**
- * Format of nvme command DW0-DW15
+ * DWord 10 of admin command
  */
-struct nvme_admin_cmd {
-    uint8_t  opcode;
-    uint8_t  flags;
-    uint16_t command_id;
-    uint32_t nsid;
-    uint64_t rsvd2;
-    uint64_t metadata;
-    uint64_t prp1;
-    uint64_t prp2;
+union dw10_u {
+    uint32_t value;
+    struct {
+        uint16_t qid;
+        uint16_t qsize;
+    } create_iocq;
+    struct {
+        uint16_t qid;
+        uint16_t qsize;
+    } create_iosq;
+    struct {
+        uint16_t qid;
+        uint16_t rsvd;
+    } del_ioq;
+    struct {
+        uint16_t sq_id;
+        uint16_t cmd_id;
+    } abort;
+    struct {
+        uint32_t test_code: 3;
+        uint32_t rsvd: 29;
+    } dst;
+    struct {
+        uint32_t num_dw;
+    } dir_send_recv;
+    struct {
+        uint32_t fw_slot: 3;
+        uint32_t action: 3;
+        uint32_t rsvd: 25;
+        uint32_t boot_part_id: 1;
+    } fw_cmt;
+    struct {
+        uint32_t num_dw;
+    } fw_dnld;
+    struct {
+        uint32_t fid: 8;
+        uint32_t rsvd: 23;
+        uint32_t save: 1;
+    } set_feature;
+    struct {
+        uint32_t fid: 8;
+        uint32_t select: 3;
+        uint32_t rsvd: 21;
+    } get_feature;
+    struct {
+        uint32_t lp_id: 8;
+        uint32_t lp_field: 4;
+        uint32_t rsvd: 3;
+        uint32_t retain_async_event: 1;
+        uint32_t num_dw_low: 16;
+    } get_log_page;
+    struct {
+        uint8_t cns;
+        uint8_t rsvd;
+        uint16_t ctrl_id;
+    } identify;
+    struct {
+        uint32_t select: 4;
+        uint32_t rsvd: 28;
+    } ns_attach;
+    struct {
+        uint32_t select: 4;
+        uint32_t rsvd: 28;
+    } ns_manage;
+    struct {
+        uint32_t act: 4;
+        uint32_t rsvd4: 4;
+        uint32_t rt: 3; //Resource Type
+        uint32_t rsvd: 5;
+        uint32_t ci: 16; //Controller Identifier
+    } vm; //Virtualization Management command
+    struct {
+        uint32_t lf: 4; //LBA Format
+        uint32_t ms: 1; //Metadata Settings
+        uint32_t pi: 3; //Protection Information
+        uint32_t pil: 1; //Protection Information Location
+        uint32_t ses: 3; //Secure Erase Settings
+        uint32_t rsvd: 20;
+    } fmt;
+    struct {
+        uint32_t sa: 3; //Sanitize Action
+        uint32_t ause: 1; //Allow Unrestricted Sanitize Exit
+        uint32_t opc: 4; //Overwrite Pass Count
+        uint32_t oipbp: 1; //Overwrite Invert Pattern Between Passes
+        uint32_t ndas: 1; //No Deallocate After Sanitize
+        uint32_t rsvd: 22;
+    } sntz;
+    struct {
+        uint8_t nssf; //NVMe Security Specific Field
+        uint8_t ss0; //SP Specific 0
+        uint8_t ss1; //SP Specific 1
+        uint8_t sp; //Security Protocol
+    } sec_recv;
+    struct {
+        uint8_t nssf; //NVMe Security Specific Field
+        uint8_t ss0; //SP Specific 0
+        uint8_t ss1; //SP Specific 1
+        uint8_t sp; //Security Protocol
+    } sec_send;
+    struct {
+        uint32_t sll; //Starting LBA Lower
+    } gls; //Get LBA Status
+};
+
+/**
+ * DWord 11 of admin command
+ */
+union dw11_u {
+    uint32_t value;
+    struct {
+        uint32_t contig: 1;
+        uint32_t int_en: 1;
+        uint32_t rsvd: 14;
+        uint32_t int_no: 16;
+    } create_iocq;
+    struct {
+        uint32_t contig: 1;
+        uint32_t qprio: 2;
+        uint32_t rsvd: 13;
+        uint32_t cq_id: 16;
+    } create_iosq;
+    struct {
+        uint8_t operation;
+        uint8_t type;
+        uint16_t specific;
+    } directive_send;
+    struct {
+        uint8_t operation;
+        uint8_t type;
+        uint16_t specific;
+    } directive_recv;
+    struct {
+        uint32_t offset;
+    } fw_dnld;
+    struct {
+        uint16_t num_dw;
+        uint16_t lp_id;
+    } get_log_page;
+    struct {
+        uint16_t nvm_set_id;
+        uint16_t rsvd;
+    } identify;
     union {
-        uint32_t value;
-        struct {
-            uint16_t qid;
-            uint16_t qsize;
-        } create_iocq;
-        struct {
-            uint16_t qid;
-            uint16_t qsize;
-        } create_iosq;
-        struct {
-            uint16_t qid;
-            uint16_t rsvd;
-        } del_ioq;
-        struct {
-            uint16_t sq_id;
-            uint16_t cmd_id;
-        } abort;
-        struct {
-            uint32_t test_code: 3;
-            uint32_t rsvd: 29;
-        } dst;
-        struct {
-            uint32_t num_dw;
-        } dir_send_recv;
-        struct {
-            uint32_t fw_slot: 3;
-            uint32_t action: 3;
-            uint32_t rsvd: 25;
-            uint32_t boot_part_id: 1;
-        } fw_cmt;
-        struct {
-            uint32_t num_dw;
-        } fw_dnld;
-        struct {
-            uint32_t fid: 8;
-            uint32_t rsvd: 23;
-            uint32_t save: 1;
-        } set_feature;
-        struct {
-            uint32_t fid: 8;
-            uint32_t select: 3;
-            uint32_t rsvd: 21;
-        } get_feature;
-        struct {
-            uint32_t lp_id: 8;
-            uint32_t lp_field: 4;
-            uint32_t rsvd: 3;
-            uint32_t retain_async_event: 1;
-            uint32_t num_dw_low: 16;
-        } get_log_page;
-        struct {
-            uint8_t cns;
-            uint8_t rsvd;
-            uint16_t ctrl_id;
-        } identify;
-        struct {
-            uint32_t select: 4;
-            uint32_t rsvd: 28;
-        } ns_attach;
-        struct {
-            uint32_t select: 4;
-            uint32_t rsvd: 28;
-        } ns_manage;
-        struct {
-            uint32_t act: 4;
-            uint32_t rsvd4: 4;
-            uint32_t rt: 3; //Resource Type
-            uint32_t rsvd: 5;
-            uint32_t ci: 16; //Controller Identifier
-        } vm; //Virtualization Management command
-        struct {
-            uint32_t lf: 4; //LBA Format
-            uint32_t ms: 1; //Metadata Settings
-            uint32_t pi: 3; //Protection Information
-            uint32_t pil: 1; //Protection Information Location
-            uint32_t ses: 3; //Secure Erase Settings
-            uint32_t rsvd: 20;
-        } fmt;
-        struct {
-            uint32_t sa: 3; //Sanitize Action
-            uint32_t ause: 1; //Allow Unrestricted Sanitize Exit
-            uint32_t opc: 4; //Overwrite Pass Count
-            uint32_t oipbp: 1; //Overwrite Invert Pattern Between Passes
-            uint32_t ndas: 1; //No Deallocate After Sanitize
-            uint32_t rsvd: 22;
-        } sntz;
-        struct {
-            uint8_t nssf; //NVMe Security Specific Field
-            uint8_t ss0; //SP Specific 0
-            uint8_t ss1; //SP Specific 1
-            uint8_t sp; //Security Protocol
-        } sec_recv;
-        struct {
-            uint8_t nssf; //NVMe Security Specific Field
-            uint8_t ss0; //SP Specific 0
-            uint8_t ss1; //SP Specific 1
-            uint8_t sp; //Security Protocol
-        } sec_send;
-        struct {
-            uint32_t sll; //Starting LBA Lower
-        } gls; //Get LBA Status
-    } cdw10;
-    union {
-        uint32_t value;
-        struct {
-            uint32_t contig: 1;
-            uint32_t int_en: 1;
-            uint32_t rsvd: 14;
-            uint32_t int_no: 16;
-        } create_iocq;
-        struct {
-            uint32_t contig: 1;
-            uint32_t qprio: 2;
-            uint32_t rsvd: 13;
-            uint32_t cq_id: 16;
-        } create_iosq;
-        struct {
-            uint8_t dir_oper;
-            uint8_t dir_type;
-            uint16_t dir_spec;
-        } dir_send_recv;
-        struct {
-            uint32_t offset;
-        } fw_dnld;
-        struct {
-            uint16_t num_dw;
-            uint16_t lp_id;
-        } get_log_page;
-        struct {
-            uint16_t nvm_set_id;
-            uint16_t rsvd;
-        } identify;
         struct {
             uint32_t arb_burst: 3;
             uint32_t rsvd: 5;
             uint32_t lpw: 8;
             uint32_t mpw: 8;
             uint32_t hpw: 8;
-        } feature_arb; //Arbitration (Feature Identifier 01h)
+        } arb; //Arbitration (Feature Identifier 01h)
         struct {
             uint32_t ps: 5;
             uint32_t wh: 3;
             uint32_t rsvd: 24;
-        } feature_pm; //Power Management (Feature Identifier 02h)
+        } pm; //Power Management (Feature Identifier 02h)
         struct {
             uint32_t num_lba_range: 6;
             uint32_t rsvd: 26;
@@ -445,34 +446,34 @@ struct nvme_admin_cmd {
             uint32_t th_tmp_sel: 4;
             uint32_t th_type_sel: 2;
             uint32_t rsvd: 10;
-        } feature_tt; //Temperature Threshold (Feature Identifier 04h)
+        } tt; //Temperature Threshold (Feature Identifier 04h)
         struct {
             uint32_t time_lim: 16;
             uint32_t enable: 1;
             uint32_t rsvd: 15;
-        } feature_er; //Error Recovery (Feature Identifier 05h)
+        } er; //Error Recovery (Feature Identifier 05h)
         struct {
             uint32_t enable: 1;
             uint32_t rsvd: 31;
-        } feature_vwc; //Volatile Write Cache (Feature Identifier 06h)
+        } vwc; //Volatile Write Cache (Feature Identifier 06h)
         struct {
             uint16_t num_sq;
             uint16_t num_cq;
-        } feature_noq; //Number of Queues (Feature Identifier 07h)
+        } noq; //Number of Queues (Feature Identifier 07h)
         struct {
             uint8_t threshold;
             uint8_t time;
             uint16_t rsvd;
-        } feature_ic; //Interrupt Coalescing (Feature Identifier 08h)
+        } ic; //Interrupt Coalescing (Feature Identifier 08h)
         struct {
             uint32_t vector: 16;
             uint32_t disable: 1;
             uint32_t rsvd: 15;
-        } feature_ivc; //Interrupt Vector Configuration (Feature Identifier 09h)
+        } ivc; //Interrupt Vector Configuration (Feature Identifier 09h)
         struct {
             uint32_t disable: 1;
             uint32_t rsvd: 31;
-        } feature_wan; //Write Atomicity Normal (Feature Identifier 0Ah)
+        } wan; //Write Atomicity Normal (Feature Identifier 0Ah)
         struct {
             uint32_t shcw: 8; //SMART / Health Critical Warnings
             uint32_t nan: 1; //Namespace Attribute Notices
@@ -484,161 +485,206 @@ struct nvme_admin_cmd {
             uint32_t egealcn: 1; //Endurance Group Event Aggregate Log Change Notices
             uint32_t rsvd: 13;
             uint32_t nof: 4; //Refer to the NVMe over Fabrics specification
-        } feature_aec; //Asynchronous Event Configuration (Feature Identifier 0Bh)
+        } aec; //Asynchronous Event Configuration (Feature Identifier 0Bh)
         struct {
             uint32_t apste: 1; //Autonomous Power State Transition Enable
             uint32_t rsvd: 31;
-        } feature_apst; //Autonomous Power State Transition (Feature Identifier 0Ch)
+        } apst; //Autonomous Power State Transition (Feature Identifier 0Ch)
         struct {
             uint32_t ehm: 1; //Enable Host Memory
             uint32_t mr: 1; //Memory Return
             uint32_t rsvd: 30;
-        } feature_hmb; //Host Memory Buffer (Feature Identifier 0Dh)
+        } hmb; //Host Memory Buffer (Feature Identifier 0Dh)
         struct {
             uint32_t kato; //Keep Alive Timeout
-        } feature_kat; //Keep Alive Timer (Feature Identifier 0Fh)
+        } kat; //Keep Alive Timer (Feature Identifier 0Fh)
         struct {
             uint16_t tmt2; //Thermal Management Temperature 2
             uint16_t tmt1; //Thermal Management Temperature 1
-        } feature_hctm; //Host Controlled Thermal Management (Feature Identifier 10h)
+        } hctm; //Host Controlled Thermal Management (Feature Identifier 10h)
         struct {
             uint32_t nopspme: 1; //Non-Operational Power State Permissive Mode Enable
             uint32_t rsvd: 31;
-        } feature_nopsc; //Non-Operational Power State Config (Feature Identifier 11h)
+        } nopsc; //Non-Operational Power State Config (Feature Identifier 11h)
         struct {
             uint16_t nsi; //NVM Set Identifier
             uint16_t rsvd;
-        } feature_rrlc; //Read Recovery Level Config (Feature Identifier 12h)
+        } rrlc; //Read Recovery Level Config (Feature Identifier 12h)
         struct {
             uint16_t nsi; //NVM Set Identifier
             uint16_t rsvd;
-        } feature_plmc; //Predictable Latency Mode Config (Feature Identifier 13h)
+        } plmc; //Predictable Latency Mode Config (Feature Identifier 13h)
         struct {
             uint16_t nsi; //NVM Set Identifier
             uint16_t rsvd;
-        } feature_plmw; //Predictable Latency Mode Window (Feature Identifier 14h)
+        } plmw; //Predictable Latency Mode Window (Feature Identifier 14h)
         struct {
             uint16_t lsiri; //LBA Status Information Report Interval
             uint16_t lsipi; //LBA Status Information Poll Interval
-        } feature_lsia; //LBA Status Information Attributes (Feature Identifier 15h)
+        } lsia; //LBA Status Information Attributes (Feature Identifier 15h)
         struct {
             uint32_t ndrm: 1; //No-Deallocate Response Mode
             uint32_t rsvd: 31;
-        } feature_sc; //Sanitize Config (Feature Identifier 17h)
+        } sc; //Sanitize Config (Feature Identifier 17h)
         struct {
             uint16_t egi; //Endurance Group Identifier
             uint8_t egcw; //Endurance Group Critical Warnings
             uint8_t rsvd;
-        } feature_egec; //Endurance Group Event Configuration (Feature Identifier 18h)
+        } egec; //Endurance Group Event Configuration (Feature Identifier 18h)
         struct {
             uint32_t pbslc: 8; //Pre-boot Software Load Count
             uint32_t rsvd: 24;
-        } feature_spm; //Software Progress Marker (Feature Identifier 80h)
+        } spm; //Software Progress Marker (Feature Identifier 80h)
         struct {
             uint32_t eehi: 1; //Enable Extended Host Identifier
             uint32_t rsvd: 31;
-        } feature_hi; //Host Identifier (Feature Identifier 81h)
+        } hi; //Host Identifier (Feature Identifier 81h)
         struct {
             uint32_t rsvd0: 1;
             uint32_t mregpn: 1; //Mask Registration Preempted Notification
             uint32_t mrrn: 1; //Mask Reservation Released Notification
             uint32_t mrpn: 1; //Mask Reservation Preempted Notification
-        } feature_rnm; //Reservation Notification Mask (Feature Identifier 82h)
+        } rnm; //Reservation Notification Mask (Feature Identifier 82h)
         struct {
             uint32_t ptpl: 1; //Persist Through Power Loss
             uint32_t rsvd: 31;
-        } feature_rp; //Reservation Persistence (Feature Identifier 83h)
+        } rp; //Reservation Persistence (Feature Identifier 83h)
         struct {
             uint32_t wps: 3; //Write Protection State
             uint32_t rsvd: 29;
-        } feature_nwpc; //Namespace Write Protection Config (Feature Identifier 84h)
-        struct {
-            uint16_t ncr; //Number of Controller Resources
-            uint16_t rsvd;
-        } vm;
-        struct {
-            uint32_t op; //Overwrite Pattern
-        } sntz;
-        struct {
-            uint32_t al; //Allocation Length
-        } sec_recv;
-        struct {
-            uint32_t tl; //Transfer Length
-        } sec_send;
-        struct {
-            uint32_t slu; //Starting LBA Upper
-        } gls; //Get LBA Status
-    } cdw11;
+        } nwpc; //Namespace Write Protection Config (Feature Identifier 84h)
+    } feature;
+    struct {
+        uint16_t ncr; //Number of Controller Resources
+        uint16_t rsvd;
+    } vm;
+    struct {
+        uint32_t op; //Overwrite Pattern
+    } sntz;
+    struct {
+        uint32_t al; //Allocation Length
+    } sec_recv;
+    struct {
+        uint32_t tl; //Transfer Length
+    } sec_send;
+    struct {
+        uint32_t slu; //Starting LBA Upper
+    } gls; //Get LBA Status
+};
+
+/**
+ * DWord 12 of admin command
+ */
+union dw12_u {
+    uint32_t value;
+    struct {
+        uint16_t nvm_set_id;
+        uint16_t rsvd;
+    } create_iosq;
+    struct {
+        uint32_t lp_offset_low;
+    } get_log_page;
     union {
-        uint32_t value;
-        struct {
-            uint16_t nvm_set_id;
-            uint16_t rsvd;
-        } create_iosq;
-        struct {
-            uint32_t lp_offset_low;
-        } get_log_page;
         struct {
             uint32_t hmbs; //Host Memory Buffer Size
-        } feature_hmb; //Host Memory Buffer (Feature Identifier 0Dh)
+        } hmb; //Host Memory Buffer (Feature Identifier 0Dh)
         struct {
             uint32_t rrl: 4; //Read Recovery Level
             uint32_t rsvd: 28;
-        } feature_rrlc; //Read Recovery Level Config (Feature Identifier 12h)
+        } rrlc; //Read Recovery Level Config (Feature Identifier 12h)
         struct {
             uint32_t ple: 1; //Predictable Latency Enable
             uint32_t rsvd: 31;
-        } feature_plmc; //Predictable Latency Mode Config (Feature Identifier 13h)
+        } plmc; //Predictable Latency Mode Config (Feature Identifier 13h)
         struct {
             uint32_t ws: 3; //Window Select
             uint32_t rsvd: 29;
-        } feature_plmw; //Predictable Latency Mode Window (Feature Identifier 14h)
-        struct {
-            uint32_t mnod; //Maximum Number of Dwords
-        } gls; //Get LBA Status
-    } cdw12;
+        } plmw; //Predictable Latency Mode Window (Feature Identifier 14h)
+    } feature;
+    struct {
+        uint32_t mnod; //Maximum Number of Dwords
+    } gls; //Get LBA Status
+};
+
+/**
+ * DWord 13 of admin command
+ */
+union dw13_u {
+    uint32_t value;
+    struct {
+        uint32_t lp_offset_up;
+    } get_log_page;
     union {
-        uint32_t value;
-        struct {
-            uint32_t lp_offset_up;
-        } get_log_page;
         struct {
             uint32_t hmdlla; //Host Memory Descriptor List Lower Address
-        } feature_hmb; //Host Memory Buffer (Feature Identifier 0Dh)
-        struct {
-            uint16_t rl; //Range Length
-            uint8_t rsvd;
-            uint8_t at; //Action Type
-        } gls; //Get LBA Status
-    } cdw13;
+        } hmb; //Host Memory Buffer (Feature Identifier 0Dh)
+    } feature;
+    struct {
+        uint16_t rl; //Range Length
+        uint8_t rsvd;
+        uint8_t at; //Action Type
+    } gls; //Get LBA Status
+};
+
+/**
+ * DWord 14 of admin command
+ */
+union dw14_u {
+    uint32_t value;
+    struct {
+        uint32_t uuid: 7;
+        uint32_t rsvd: 25;
+    } set_feature;
+    struct {
+        uint32_t uuid: 7;
+        uint32_t rsvd: 25;
+    } get_feature;
+    struct {
+        uint32_t uuid: 7;
+        uint32_t rsvd: 25;
+    } get_log_page;
+    struct {
+        uint32_t uuid: 7;
+        uint32_t rsvd: 25;
+    } identify;
     union {
-        uint32_t value;
-        struct {
-            uint32_t uuid: 7;
-            uint32_t rsvd: 25;
-        } set_feature;
-        struct {
-            uint32_t uuid: 7;
-            uint32_t rsvd: 25;
-        } get_feature;
-        struct {
-            uint32_t uuid: 7;
-            uint32_t rsvd: 25;
-        } get_log_page;
-        struct {
-            uint32_t uuid: 7;
-            uint32_t rsvd: 25;
-        } identify;
         struct {
             uint32_t hmdlua; //Host Memory Descriptor List Upper Address
-        } feature_hmb; //Host Memory Buffer (Feature Identifier 0Dh)
-    } cdw14;
+        } hmb; //Host Memory Buffer (Feature Identifier 0Dh)
+    } feature;
+};
+
+/**
+ * DWord 15 of admin command
+ */
+union dw15_u {
+    uint32_t value;
     union {
-        uint32_t value;
         struct {
             uint32_t hmdlec; //Host Memory Descriptor List Entry Count
-        } feature_hmb; //Host Memory Buffer (Feature Identifier 0Dh)
-    } cdw15;
+        } hmb; //Host Memory Buffer (Feature Identifier 0Dh)
+    } feature;
+} cdw15;
+
+
+/**
+ * Format of nvme command DW0-DW15
+ */
+struct nvme_admin_cmd {
+    uint8_t  opcode;
+    uint8_t  flags;
+    uint16_t command_id;
+    uint32_t nsid;
+    uint64_t rsvd2;
+    uint64_t metadata;
+    uint64_t prp1;
+    uint64_t prp2;
+    union dw10_u cdw10;
+    union dw11_u cdw11;
+    union dw12_u cdw12;
+    union dw13_u cdw13;
+    union dw14_u cdw14;
+    union dw15_u cdw15;
 };
 
 /**
