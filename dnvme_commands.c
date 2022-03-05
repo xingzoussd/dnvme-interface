@@ -301,28 +301,26 @@ int dnvme_admin_get_log_page(int fd, struct nvme_64b_send *cmd)
     return ret;
 }
 
-int dnvme_admin_identify_ctrl(int fd, uint16_t ctrl_id, uint8_t *buffer)
+int dnvme_admin_identify(int fd, uint16_t ctrl_id, int cns, uint8_t *buffer)
 {
     struct nvme_admin_cmd cmd = {
         .opcode = NVME_ADMIN_IDENTIFY,
         .nsid = 0,
         .prp1 = (uint64_t)buffer,
-        .cdw10.identify.cns = NVME_ID_CNS_CTRL,
-        .cdw10.identify.ctrl_id = 0,
+        .cdw10.identify.cns = cns,
+        .cdw10.identify.ctrl_id = ctrl_id,
     };
     return ioctl_identify(fd, &cmd);
 }
 
+int dnvme_admin_identify_ctrl(int fd, uint16_t ctrl_id, uint8_t *buffer)
+{
+    return dnvme_admin_identify(fd, ctrl_id, NVME_ID_CNS_CTRL, buffer);
+}
+
 int dnvme_admin_identify_ns(int fd, uint16_t ctrl_id, uint32_t nsid, uint8_t *buffer)
 {
-    struct nvme_admin_cmd cmd = {
-        .opcode = NVME_ADMIN_IDENTIFY,
-        .nsid = nsid,
-        .prp1 = (uint64_t)buffer,
-        .cdw10.identify.cns = NVME_ID_CNS_NS,
-        .cdw10.identify.ctrl_id = ctrl_id,
-    };
-    return ioctl_identify(fd, &cmd);
+    return dnvme_admin_identify(fd, ctrl_id, NVME_ID_CNS_NS, buffer);
 }
 
 int dnvme_admin_abort(int fd, uint16_t sq_id, uint16_t cmd_id)
@@ -366,10 +364,25 @@ int dnvme_admin_set_feature(
 int dnvme_set_power_state(int fd, uint32_t nsid, uint8_t save, uint8_t ps, uint8_t wh)
 {
     union dw11_u dw11 = {
-        .feature.ps = ps,
-        .feature.wh = wh,
+        .feature.pm.ps = ps,
+        .feature.pm.wh = wh,
     };
-    return dnvme_admin_set_feature(fd, nsid, NVME_FEATURE_POWER_MANAGEMENT, save, dw11, NULL, 0);
+    union dw12_u dw12 = {0};
+    union dw13_u dw13 = {0};
+    union dw14_u dw14 = {0};
+    union dw15_u dw15 = {0};
+    return dnvme_admin_set_feature(
+        fd,
+        nsid,
+        NVME_FEATURE_POWER_MANAGEMENT,
+        save,
+        dw11,
+        dw12,
+        dw13,
+        dw14,
+        dw15,
+        NULL,
+        0);
 }
 
 int dnvme_admin_get_feature(
@@ -402,7 +415,23 @@ int dnvme_admin_get_feature(
 
 int dnvme_get_power_state(int fd, uint32_t nsid, uint8_t select)
 {
-    return dnvme_admin_get_feature(fd, nsid, NVME_FEATURE_POWER_MANAGEMENT, select, NULL, 0);
+    union dw11_u dw11 = {0};
+    union dw12_u dw12 = {0};
+    union dw13_u dw13 = {0};
+    union dw14_u dw14 = {0};
+    union dw15_u dw15 = {0};
+    return dnvme_admin_get_feature(
+        fd,
+        nsid,
+        NVME_FEATURE_POWER_MANAGEMENT,
+        select,
+        dw11,
+        dw12,
+        dw13,
+        dw14,
+        dw15,
+        NULL,
+        0);
 }
 
 int dnvme_admin_async_event_request(int fd, struct nvme_64b_send *cmd)
