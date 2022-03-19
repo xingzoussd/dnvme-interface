@@ -434,10 +434,13 @@ int dnvme_get_power_state(int fd, uint32_t nsid, uint8_t select)
         0);
 }
 
-int dnvme_admin_async_event_request(int fd, struct nvme_64b_send *cmd)
+int dnvme_admin_async_event_request(int fd)
 {
-    int ret = 0;
-    return ret;
+    struct nvme_admin_cmd cmd = {
+        .opcode = NVME_ADMIN_ASYNC_EVENT_REQUEST,
+        .nsid = 0,
+    };
+    return ioctl_async_event_request(fd, &cmd);
 }
 
 int dnvme_admin_namespace_management(int fd, struct nvme_64b_send *cmd)

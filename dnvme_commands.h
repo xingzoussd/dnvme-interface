@@ -78,7 +78,7 @@ int dnvme_admin_get_feature(
     uint8_t *buffer,
     uint32_t buffer_size);
 int dnvme_get_power_state(int fd, uint32_t nsid, uint8_t select);
-
+int dnvme_admin_async_event_request(int fd);
 
 
 

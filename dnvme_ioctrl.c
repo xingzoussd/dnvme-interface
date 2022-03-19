@@ -158,6 +158,15 @@ int ioctl_get_feature(int fd, struct nvme_admin_cmd *cmd, uint32_t buffer_size)
     return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
 }
 
+int ioctl_async_event_request(int fd, struct nvme_admin_cmd *cmd)
+{
+    struct nvme_64b_send user_cmd = {
+        .q_id = 0,
+        .cmd_buf_ptr = (uint8_t *)cmd,
+    };
+    return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
+}
+
 int ioctl_set_irq(int fd, struct interrupts *irq)
 {
     return ioctl(fd, NVME_IOCTL_SET_IRQ, irq);

@@ -25,7 +25,7 @@ int ioctl_get_log_page(int fd, struct nvme_admin_cmd *cmd);
 int ioctl_abort(int fd, struct nvme_admin_cmd *cmd);
 int ioctl_set_feature(int fd, struct nvme_admin_cmd *cmd, uint32_t buffer_size);
 int ioctl_get_feature(int fd, struct nvme_admin_cmd *cmd, uint32_t buffer_size);
-
+int ioctl_async_event_request(int fd, struct nvme_admin_cmd *cmd);
 
 
 int ioctl_set_irq(int fd, struct interrupts *irq);
