@@ -283,7 +283,7 @@ struct nvme_gen_cmd {
  * DWord 10 of admin command
  */
 union dw10_u {
-    uint32_t value;
+    uint32_t value;    /*DW10 value*/
     struct {
         uint16_t qid;
         uint16_t qsize;
@@ -301,7 +301,7 @@ union dw10_u {
         uint16_t cmd_id;
     } abort;
     struct {
-        uint32_t test_code: 3;
+        uint32_t stc: 3;   /*self-test code*/
         uint32_t rsvd: 29;
     } dst;
     struct {

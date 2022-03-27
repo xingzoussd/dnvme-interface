@@ -28,6 +28,7 @@ int ioctl_get_feature(int fd, struct nvme_admin_cmd *cmd, uint32_t buffer_size);
 int ioctl_async_event_request(int fd, struct nvme_admin_cmd *cmd);
 int ioctl_firmware_commit(int fd, struct nvme_admin_cmd *cmd);
 int ioctl_firmware_download(int fd, struct nvme_admin_cmd *cmd, uint32_t buffer_size);
+int ioctl_device_self_test(int fd, struct nvme_admin_cmd *cmd, uint32_t buffer_size);
 
 int ioctl_set_irq(int fd, struct interrupts *irq);
 int ioctl_ring_doorbell(int fd, uint16_t sq_id);

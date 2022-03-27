@@ -194,6 +194,19 @@ int ioctl_firmware_download(int fd, struct nvme_admin_cmd *cmd, uint32_t buffer_
     return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
 }
 
+int ioctl_device_self_test(int fd, struct nvme_admin_cmd *cmd, uint32_t buffer_size)
+{
+    struct nvme_64b_send user_cmd = {
+        .q_id = 0,
+        .bit_mask = MASK_PRP1_PAGE,
+        .cmd_buf_ptr = (uint8_t *)cmd,
+        .data_buf_size = buffer_size,
+        .data_buf_ptr = (uint8_t *)cmd->prp1,
+        .data_dir = DATA_DIR_FROM_DEVICE,
+    };
+    return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
+}
+
 int ioctl_ring_doorbell(int fd, uint16_t sq_id)
 {
     return ioctl(fd, NVME_IOCTL_RING_SQ_DOORBELL, sq_id);
