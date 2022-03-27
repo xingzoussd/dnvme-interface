@@ -47,21 +47,22 @@ uint16_t dnvme_pcie_msix_get_entry_count(int fd, uint16_t msix_cap);
 void dnvme_pcie_msix_enable(int fd, uint16_t msix_cap);
 
 
-int dnvme_admin_create_iocq(int fd, uint16_t cq_id, uint16_t int_no, uint16_t qsize, uint8_t contig, void *buffer);
-int dnvme_admin_create_iosq(int fd, uint16_t sq_id, uint16_t cq_id, uint16_t qsize, uint8_t contig, void *buffer);
-int dnvme_admin_identify_ctrl(int fd, uint16_t ctrl_id, uint8_t *buffer);
-int dnvme_admin_identify_ns(int fd, uint16_t ctrl_id, uint32_t nsid, uint8_t *buffer);
-int dnvme_admin_abort(int fd, uint16_t sq_id, uint16_t cmd_id);
+int dnvme_admin_create_iocq(int fd, uint32_t nsid, uint16_t cq_id, uint16_t int_no, uint16_t qsize, uint8_t contig, void *buffer);
+int dnvme_admin_create_iosq(int fd, uint32_t nsid, uint16_t sq_id, uint16_t cq_id, uint16_t qsize, uint8_t contig, void *buffer);
+int dnvme_admin_identify(int fd, uint32_t nsid, uint16_t ctrl_id, int cns, uint8_t *buffer);
+int dnvme_admin_identify_ctrl(int fd, uint32_t nsid, uint16_t ctrl_id, uint8_t *buffer);
+int dnvme_admin_identify_ns(int fd, uint32_t nsid, uint16_t ctrl_id, uint8_t *buffer);
+int dnvme_admin_abort(int fd, uint32_t nsid, uint16_t sq_id, uint16_t cmd_id);
 int dnvme_admin_set_feature(
     int fd,
     uint32_t nsid,
     uint16_t feature_id,
     uint8_t save,
-    union dw11_u dw11,
-    union dw12_u dw12,
-    union dw13_u dw13,
-    union dw14_u dw14,
-    union dw15_u dw15,
+    uint32_t dw11,
+    uint32_t dw12,
+    uint32_t dw13,
+    uint32_t dw14,
+    uint32_t dw15,
     uint8_t *buffer,
     uint32_t buffer_size);
 int dnvme_set_power_state(int fd, uint32_t nsid, uint8_t save, uint8_t ps, uint8_t wh);
@@ -70,16 +71,17 @@ int dnvme_admin_get_feature(
     uint32_t nsid,
     uint16_t feature_id,
     uint8_t select,
-    union dw11_u dw11,
-    union dw12_u dw12,
-    union dw13_u dw13,
-    union dw14_u dw14,
-    union dw15_u dw15,
+    uint32_t dw11,
+    uint32_t dw12,
+    uint32_t dw13,
+    uint32_t dw14,
+    uint32_t dw15,
     uint8_t *buffer,
     uint32_t buffer_size);
 int dnvme_get_power_state(int fd, uint32_t nsid, uint8_t select);
-int dnvme_admin_async_event_request(int fd);
-
+int dnvme_admin_async_event_request(int fd, uint32_t nsid);
+int dnvme_admin_firmware_commit(int fd, uint32_t nsid, uint32_t fs, uint32_t ca, uint32_t bpid);
+int dnvme_admin_firmware_image_download(int fd, uint32_t nsid, uint32_t numd, uint32_t ofst, uint8_t *buffer, uint32_t buffer_size);
 
 
 int dnvme_cq_remain(int fd, uint16_t q_id);
