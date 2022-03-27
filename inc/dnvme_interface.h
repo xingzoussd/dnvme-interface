@@ -308,13 +308,13 @@ union dw10_u {
         uint32_t num_dw;
     } dir_send_recv;
     struct {
-        uint32_t fw_slot: 3;
-        uint32_t action: 3;
+        uint32_t fs: 3;      /*firmware slot*/
+        uint32_t ca: 3;      /*commit action*/
         uint32_t rsvd: 25;
-        uint32_t boot_part_id: 1;
+        uint32_t bpid: 1;    /*boot partition id*/
     } fw_cmt;
     struct {
-        uint32_t num_dw;
+        uint32_t numd; /*number of dword*/
     } fw_dnld;
     struct {
         uint32_t fid: 8;
@@ -414,7 +414,7 @@ union dw11_u {
         uint16_t specific;
     } directive_recv;
     struct {
-        uint32_t offset;
+        uint32_t ofst;
     } fw_dnld;
     struct {
         uint16_t num_dw;

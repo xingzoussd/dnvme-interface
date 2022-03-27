@@ -137,16 +137,16 @@ int main(int argc, char *argv[])
         return ret;
     dnvme_pcie_msix_enable(fd, msix_cap);
     ioctl_device_metrics(fd);
-    ret = dnvme_admin_create_iocq(fd, cq_id, irq_no, qsize, contig, iocq_buffer);
+    ret = dnvme_admin_create_iocq(fd, 0, cq_id, irq_no, qsize, contig, iocq_buffer);
     if (ret)
         return ret;
-    ret = dnvme_admin_create_iosq(fd, sq_id, cq_id, qsize, contig, iosq_buffer);
+    ret = dnvme_admin_create_iosq(fd, 0, sq_id, cq_id, qsize, contig, iosq_buffer);
     if (ret)
         return ret;
-    ret = dnvme_admin_identify_ctrl(fd, 0, identify_ctrl_buffer);
+    ret = dnvme_admin_identify_ctrl(fd, 0, 0, identify_ctrl_buffer);
     if (ret)
         return ret;
-    ret = dnvme_admin_identify_ns(fd, 0, 1, identify_ns_buffer);
+    ret = dnvme_admin_identify_ns(fd, 1, 0, identify_ns_buffer);
     if (ret)
         return ret;
     //ret = dnvme_admin_abort(fd, 0, NVME_ADMIN_IDENTIFY);
