@@ -82,6 +82,7 @@ int dnvme_get_power_state(int fd, uint32_t nsid, uint8_t select);
 int dnvme_admin_async_event_request(int fd, uint32_t nsid);
 int dnvme_admin_firmware_commit(int fd, uint32_t nsid, uint32_t fs, uint32_t ca, uint32_t bpid);
 int dnvme_admin_firmware_image_download(int fd, uint32_t nsid, uint32_t numd, uint32_t ofst, uint8_t *buffer, uint32_t buffer_size);
+int dnvme_admin_device_self_test(int fd, uint32_t nsid, uint32_t stc, uint8_t *buffer, uint32_t buffer_size);
 
 
 int dnvme_cq_remain(int fd, uint16_t q_id);

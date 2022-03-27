@@ -487,10 +487,16 @@ int dnvme_admin_firmware_image_download(int fd, uint32_t nsid, uint32_t numd, ui
     return ioctl_firmware_download(fd, &cmd, buffer_size);
 }
 
-int dnvme_admin_device_self_test(int fd, struct nvme_64b_send *cmd)
+int dnvme_admin_device_self_test(int fd, uint32_t nsid, uint32_t stc, uint8_t *buffer, uint32_t buffer_size)
 {
-    int ret = 0;
-    return ret;
+    struct nvme_admin_cmd cmd = {
+        .opcode = NVME_ADMIN_DEVICE_SELF_TEST,
+        .flags = 0,
+        .nsid = nsid,
+        .cdw10.dst.stc = stc,
+        .prp1 = (uint64_t)buffer,
+    };
+    return ioctl_device_self_test(fd, &cmd, buffer_size);
 }
 
 int dnvme_admin_namespace_attachment(int fd, struct nvme_64b_send *cmd)
