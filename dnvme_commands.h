@@ -11,16 +11,21 @@
 #include <stdint.h>
 #include "inc/dnvme_interface.h"
 
-enum malloc_buffer_type {
+enum status_type {
     SUCCESS = 0,
-    FAILURE = -1
+    MALLOC_BUFFER_ERROR,
+    CREATE_ADMIN_CQ_BUFFER_ERROR,
+    CREATE_ADMIN_SQ_BUFFER_ERROR,
+    DISABLE_CONTROLLER_ERROR,
+    ENABLE_IRQ_ERROR,
+    CREATE_ADMIN_CQ_ERROR,
+    CREATE_ADMIN_SQ_ERROR,
+    ENABLE_CONTROLLER_ERROR,
+    INIT_DRIVE_ERROR_MAX
 };
 
-
 int open_dev(char *dev);
-int dnvme_create_admin_cq(int fd);
-int dnvme_create_admin_sq(int fd);
-int dnvme_set_irq(int fd, uint16_t num_irqs, enum nvme_irq_type irq_type);
+int init_drive(int fd);
 int dnvme_ring_doorbell(int fd, uint16_t sq_id);
 int malloc_4k_aligned_buffer(void **buffer, uint32_t element_size, uint32_t elements);
 

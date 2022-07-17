@@ -63,11 +63,6 @@ int dnvme_set_irq(int fd, uint16_t num_irqs, enum nvme_irq_type irq_type)
     return ioctl_set_irq(fd, &irqs);
 }
 
-int dnvme_ring_doorbell(int fd, uint16_t sq_id)
-{
-    return ioctl_ring_doorbell(fd, sq_id);
-}
-
 int malloc_4k_aligned_buffer(void **buffer, uint32_t element_size, uint32_t elements)
 {
     *buffer = NULL;
@@ -76,7 +71,36 @@ int malloc_4k_aligned_buffer(void **buffer, uint32_t element_size, uint32_t elem
     {
         return SUCCESS;
     }
-    return FAILURE;
+    return MALLOC_BUFFER_ERROR;
+}
+
+int init_drive(int fd)
+{
+    uint16_t msix_cap = dnvme_pcie_msix_capability(fd);
+    uint16_t msix_entry_count = dnvme_pcie_msix_get_entry_count(fd, msix_cap);
+    int ret = dnvme_controller_disable(fd);
+    if (ret)
+        return DISABLE_CONTROLLER_ERROR;
+    ret = dnvme_set_irq(fd, msix_entry_count, INT_MSIX);
+    if (ret)
+        return ENABLE_IRQ_ERROR;
+    ret = dnvme_create_admin_cq(fd);
+    if (ret)
+        return CREATE_ADMIN_CQ_ERROR;
+    ret = dnvme_create_admin_sq(fd);
+    if (ret)
+        return CREATE_ADMIN_SQ_ERROR;
+    ret = dnvme_controller_enable(fd);
+    if (ret)
+        return ENABLE_CONTROLLER_ERROR;
+    dnvme_pcie_msix_enable(fd, msix_cap);
+    ioctl_device_metrics(fd);
+    return SUCCESS;
+}
+
+int dnvme_ring_doorbell(int fd, uint16_t sq_id)
+{
+    return ioctl_ring_doorbell(fd, sq_id);
 }
 
 /************************************* Register commands ************************************/

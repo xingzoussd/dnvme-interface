@@ -68,8 +68,8 @@ int main(int argc, char *argv[])
     uint16_t sq_id = 1;
     uint16_t irq_no = 1;
     uint8_t contig = 1;
-    uint16_t msix_cap = 0;
-    uint16_t msix_entry_count = 0;
+//    uint16_t msix_cap = 0;
+//    uint16_t msix_entry_count = 0;
     void *iocq_buffer = NULL;
     void *iosq_buffer = NULL;
     void *identify_ctrl_buffer = NULL;
@@ -86,21 +86,21 @@ int main(int argc, char *argv[])
         exit(-1);
     }
     printf("Device File Successfully Opened = %d\n", fd);
-    msix_cap = dnvme_pcie_msix_capability(fd);
-    msix_entry_count = dnvme_pcie_msix_get_entry_count(fd, msix_cap);
-    //ioctl_device_metrics(fd);
-    //dnvme_controller_disable(fd);
-    //ret = dnvme_set_irq(fd, msix_entry_count, INT_MSIX);
-    //if (ret<0)
-    //    printf("Set IRQ MSIX failed.\n");
-    //else
-    //    printf("Set IRQ MSIX successfully.\n");
-    ////dnvme_pcie_msix_enable(fd, msix_cap);
-    //dnvme_controller_enable(fd);
-    //dnvme_pcie_msix_enable(fd, msix_cap);
-    //ioctl_device_metrics(fd);
-    if (ret)
-        return ret;
+//    msix_cap = dnvme_pcie_msix_capability(fd);
+//    msix_entry_count = dnvme_pcie_msix_get_entry_count(fd, msix_cap);
+//    //ioctl_device_metrics(fd);
+//    //dnvme_controller_disable(fd);
+//    //ret = dnvme_set_irq(fd, msix_entry_count, INT_MSIX);
+//    //if (ret<0)
+//    //    printf("Set IRQ MSIX failed.\n");
+//    //else
+//    //    printf("Set IRQ MSIX successfully.\n");
+//    ////dnvme_pcie_msix_enable(fd, msix_cap);
+//    //dnvme_controller_enable(fd);
+//    //dnvme_pcie_msix_enable(fd, msix_cap);
+//    //ioctl_device_metrics(fd);
+//    if (ret)
+//        return ret;
     ret = malloc_4k_aligned_buffer(&iocq_buffer, NVME_IOCQ_ELEMENT_SIZE, qsize);
     if (ret)
         return ret;
@@ -113,19 +113,20 @@ int main(int argc, char *argv[])
     ret = malloc_4k_aligned_buffer(&identify_ns_buffer, sizeof(struct nvme_id_ns), 1);
     if (ret)
         return ret;
-    ret = dnvme_controller_disable(fd);
-    ret = dnvme_set_irq(fd, msix_entry_count, INT_MSIX);
-    if (ret)
-        return ret;
-    ret = dnvme_create_admin_cq(fd);
-    if (ret)
-        return ret;
-    ret = dnvme_create_admin_sq(fd);
-    if (ret)
-        return ret;
-    ret = dnvme_controller_enable(fd);
-    if (ret)
-        return ret;
+//    ret = dnvme_controller_disable(fd);
+//    ret = dnvme_set_irq(fd, msix_entry_count, INT_MSIX);
+//    if (ret)
+//        return ret;
+//    ret = dnvme_create_admin_cq(fd);
+//    if (ret)
+//        return ret;
+//    ret = dnvme_create_admin_sq(fd);
+//    if (ret)
+//        return ret;
+//    ret = dnvme_controller_enable(fd);
+//    if (ret)
+//        return ret;
+    ret = init_drive(fd);
     ret = show_pcie_capability(fd);
     if (ret)
         return ret;
@@ -135,8 +136,8 @@ int main(int argc, char *argv[])
     ret = show_csts(fd);
     if (ret)
         return ret;
-    dnvme_pcie_msix_enable(fd, msix_cap);
-    ioctl_device_metrics(fd);
+//    dnvme_pcie_msix_enable(fd, msix_cap);
+//    ioctl_device_metrics(fd);
     ret = dnvme_admin_create_iocq(fd, 0, cq_id, irq_no, qsize, contig, iocq_buffer);
     if (ret)
         return ret;
