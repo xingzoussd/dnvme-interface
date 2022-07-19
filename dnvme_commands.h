@@ -28,6 +28,8 @@ int open_dev(char *dev);
 int init_drive(int fd);
 int dnvme_ring_doorbell(int fd, uint16_t sq_id);
 int malloc_4k_aligned_buffer(void **buffer, uint32_t element_size, uint32_t elements);
+void* create_buffer(uint32_t element_size, uint32_t elements);
+int dump_data(void* buffer, int buffer_len, int index);
 
 int dnvme_controller_enable(int fd);
 int dnvme_controller_disable(int fd);

@@ -74,6 +74,23 @@ int malloc_4k_aligned_buffer(void **buffer, uint32_t element_size, uint32_t elem
     return MALLOC_BUFFER_ERROR;
 }
 
+void* create_buffer(uint32_t element_size, uint32_t elements)
+{
+    void *buffer = NULL;
+    malloc_4k_aligned_buffer(&buffer, element_size, elements);
+    return buffer;
+}
+
+int dump_data(void* buffer, int buffer_len, int index)
+{
+    int ret = 0xFFFF;
+    if (index < buffer_len)
+    {
+        ret = (int)(((unsigned char*)buffer)[index]);
+    }
+    return ret;
+}
+
 int init_drive(int fd)
 {
     uint16_t msix_cap = dnvme_pcie_msix_capability(fd);
