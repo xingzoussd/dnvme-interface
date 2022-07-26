@@ -86,9 +86,34 @@ int dump_data(void* buffer, int buffer_len, int index)
     int ret = 0xFFFF;
     if (index < buffer_len)
     {
-        ret = (int)(((unsigned char*)buffer)[index]);
+        ret = (int)(((uint8_t*)buffer)[index]);
+    }
+    else
+    {
+        printf("Memory overlap");
     }
     return ret;
+}
+
+void set_data(void* buffer, int buffer_len, int index, uint8_t value)
+{
+    if (index < buffer_len)
+    {
+        (((uint8_t*)buffer)[index]) = value;
+    }
+    else
+    {
+        printf("Memory overlap");
+    }
+}
+
+void free_buffer(void* buffer)
+{
+    if (buffer != NULL)
+    {
+        free(buffer);
+        buffer = NULL;
+    }
 }
 
 int init_drive(int fd)
@@ -286,7 +311,14 @@ void dnvme_pcie_msix_enable(int fd, uint16_t msix_cap)
 
 /************************************** Admin commands **************************************/
 
-int dnvme_admin_create_iocq(int fd, uint32_t nsid, uint16_t cq_id, uint16_t int_no, uint16_t qsize, uint8_t contig, void *buffer)
+int dnvme_admin_create_iocq(
+    int fd,
+    uint32_t nsid,
+    uint16_t cq_id,
+    uint16_t int_no,
+    uint16_t qsize,
+    uint8_t contig,
+    void *buffer)
 {
     struct nvme_admin_cmd cmd = {
         .opcode = NVME_ADMIN_CREATE_IOCQ,
@@ -303,7 +335,16 @@ int dnvme_admin_create_iocq(int fd, uint32_t nsid, uint16_t cq_id, uint16_t int_
     return ret;
 }
 
-int dnvme_admin_create_iosq(int fd, uint32_t nsid, uint16_t sq_id, uint16_t cq_id, uint16_t qsize, uint8_t contig, void *buffer)
+int dnvme_admin_create_iosq(
+    int fd,
+    uint32_t nsid,
+    uint16_t sq_id,
+    uint16_t cq_id,
+    uint16_t qsize,
+    uint8_t contig,
+    void *buffer,
+    uint8_t qprio,
+    uint16_t nvmsetid)
 {
     struct nvme_admin_cmd cmd = {
         .opcode = NVME_ADMIN_CREATE_IOSQ,
@@ -313,8 +354,9 @@ int dnvme_admin_create_iosq(int fd, uint32_t nsid, uint16_t sq_id, uint16_t cq_i
         .cdw10.create_iosq.qid = sq_id,
         .cdw10.create_iosq.qsize = qsize,
         .cdw11.create_iosq.contig = contig,
-        .cdw11.create_iosq.qprio = 1,
+        .cdw11.create_iosq.qprio = qprio,
         .cdw11.create_iosq.cq_id = cq_id,
+        .cdw12.create_iosq.nvm_set_id = nvmsetid,
     };
     int ret = ioctl_create_iosq(fd, &cmd);
     return ret;

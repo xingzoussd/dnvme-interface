@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
     ret = dnvme_admin_create_iocq(fd, 0, cq_id, irq_no, qsize, contig, iocq_buffer);
     if (ret)
         return ret;
-    ret = dnvme_admin_create_iosq(fd, 0, sq_id, cq_id, qsize, contig, iosq_buffer);
+    ret = dnvme_admin_create_iosq(fd, 0, sq_id, cq_id, qsize, contig, iosq_buffer, 1, 0);
     if (ret)
         return ret;
     ret = dnvme_admin_identify_ctrl(fd, 0, 0, identify_ctrl_buffer);

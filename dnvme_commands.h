@@ -30,6 +30,8 @@ int dnvme_ring_doorbell(int fd, uint16_t sq_id);
 int malloc_4k_aligned_buffer(void **buffer, uint32_t element_size, uint32_t elements);
 void* create_buffer(uint32_t element_size, uint32_t elements);
 int dump_data(void* buffer, int buffer_len, int index);
+void set_data(void* buffer, int buffer_len, int index, uint8_t value);
+void free_buffer(void* buffer);
 
 int dnvme_controller_enable(int fd);
 int dnvme_controller_disable(int fd);
@@ -55,7 +57,7 @@ void dnvme_pcie_msix_enable(int fd, uint16_t msix_cap);
 
 
 int dnvme_admin_create_iocq(int fd, uint32_t nsid, uint16_t cq_id, uint16_t int_no, uint16_t qsize, uint8_t contig, void *buffer);
-int dnvme_admin_create_iosq(int fd, uint32_t nsid, uint16_t sq_id, uint16_t cq_id, uint16_t qsize, uint8_t contig, void *buffer);
+int dnvme_admin_create_iosq(int fd, uint32_t nsid, uint16_t sq_id, uint16_t cq_id, uint16_t qsize, uint8_t contig, void *buffer, uint8_t qprio, uint16_t nvmsetid);
 int dnvme_admin_identify(int fd, uint32_t nsid, uint16_t ctrl_id, int cns, uint8_t *buffer);
 int dnvme_admin_identify_ctrl(int fd, uint32_t nsid, uint16_t ctrl_id, uint8_t *buffer);
 int dnvme_admin_identify_ns(int fd, uint32_t nsid, uint16_t ctrl_id, uint8_t *buffer);
