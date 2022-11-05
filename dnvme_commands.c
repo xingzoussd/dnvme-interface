@@ -63,11 +63,6 @@ int dnvme_set_irq(int fd, uint16_t num_irqs, enum nvme_irq_type irq_type)
     return ioctl_set_irq(fd, &irqs);
 }
 
-int dnvme_ring_doorbell(int fd, uint16_t sq_id)
-{
-    return ioctl_ring_doorbell(fd, sq_id);
-}
-
 int malloc_4k_aligned_buffer(void **buffer, uint32_t element_size, uint32_t elements)
 {
     *buffer = NULL;
@@ -76,7 +71,78 @@ int malloc_4k_aligned_buffer(void **buffer, uint32_t element_size, uint32_t elem
     {
         return SUCCESS;
     }
-    return FAILURE;
+    return MALLOC_BUFFER_ERROR;
+}
+
+void* create_buffer(uint32_t element_size, uint32_t elements)
+{
+    void *buffer = NULL;
+    malloc_4k_aligned_buffer(&buffer, element_size, elements);
+    return buffer;
+}
+
+int dump_data(void* buffer, int buffer_len, int index)
+{
+    int ret = 0xFFFF;
+    if (index < buffer_len)
+    {
+        ret = (int)(((uint8_t*)buffer)[index]);
+    }
+    else
+    {
+        printf("Memory overlap");
+    }
+    return ret;
+}
+
+void set_data(void* buffer, int buffer_len, int index, uint8_t value)
+{
+    if (index < buffer_len)
+    {
+        (((uint8_t*)buffer)[index]) = value;
+    }
+    else
+    {
+        printf("Memory overlap");
+    }
+}
+
+void free_buffer(void* buffer)
+{
+    if (buffer != NULL)
+    {
+        free(buffer);
+        buffer = NULL;
+    }
+}
+
+int init_drive(int fd)
+{
+    uint16_t msix_cap = dnvme_pcie_msix_capability(fd);
+    uint16_t msix_entry_count = dnvme_pcie_msix_get_entry_count(fd, msix_cap);
+    int ret = dnvme_controller_disable(fd);
+    if (ret)
+        return DISABLE_CONTROLLER_ERROR;
+    ret = dnvme_set_irq(fd, msix_entry_count, INT_MSIX);
+    if (ret)
+        return ENABLE_IRQ_ERROR;
+    ret = dnvme_create_admin_cq(fd);
+    if (ret)
+        return CREATE_ADMIN_CQ_ERROR;
+    ret = dnvme_create_admin_sq(fd);
+    if (ret)
+        return CREATE_ADMIN_SQ_ERROR;
+    ret = dnvme_controller_enable(fd);
+    if (ret)
+        return ENABLE_CONTROLLER_ERROR;
+    dnvme_pcie_msix_enable(fd, msix_cap);
+    ioctl_device_metrics(fd);
+    return SUCCESS;
+}
+
+int dnvme_ring_doorbell(int fd, uint16_t sq_id)
+{
+    return ioctl_ring_doorbell(fd, sq_id);
 }
 
 /************************************* Register commands ************************************/
@@ -245,7 +311,14 @@ void dnvme_pcie_msix_enable(int fd, uint16_t msix_cap)
 
 /************************************** Admin commands **************************************/
 
-int dnvme_admin_create_iocq(int fd, uint32_t nsid, uint16_t cq_id, uint16_t int_no, uint16_t qsize, uint8_t contig, void *buffer)
+int dnvme_admin_create_iocq(
+    int fd,
+    uint32_t nsid,
+    uint16_t cq_id,
+    uint16_t int_no,
+    uint16_t qsize,
+    uint8_t contig,
+    void *buffer)
 {
     struct nvme_admin_cmd cmd = {
         .opcode = NVME_ADMIN_CREATE_IOCQ,
@@ -262,7 +335,16 @@ int dnvme_admin_create_iocq(int fd, uint32_t nsid, uint16_t cq_id, uint16_t int_
     return ret;
 }
 
-int dnvme_admin_create_iosq(int fd, uint32_t nsid, uint16_t sq_id, uint16_t cq_id, uint16_t qsize, uint8_t contig, void *buffer)
+int dnvme_admin_create_iosq(
+    int fd,
+    uint32_t nsid,
+    uint16_t sq_id,
+    uint16_t cq_id,
+    uint16_t qsize,
+    uint8_t contig,
+    void *buffer,
+    uint8_t qprio,
+    uint16_t nvmsetid)
 {
     struct nvme_admin_cmd cmd = {
         .opcode = NVME_ADMIN_CREATE_IOSQ,
@@ -272,8 +354,9 @@ int dnvme_admin_create_iosq(int fd, uint32_t nsid, uint16_t sq_id, uint16_t cq_i
         .cdw10.create_iosq.qid = sq_id,
         .cdw10.create_iosq.qsize = qsize,
         .cdw11.create_iosq.contig = contig,
-        .cdw11.create_iosq.qprio = 1,
+        .cdw11.create_iosq.qprio = qprio,
         .cdw11.create_iosq.cq_id = cq_id,
+        .cdw12.create_iosq.nvm_set_id = nvmsetid,
     };
     int ret = ioctl_create_iosq(fd, &cmd);
     return ret;
@@ -301,13 +384,28 @@ int dnvme_admin_delete_iocq(int fd, uint32_t nsid, uint16_t cq_id)
     return ioctl_delete_ioq(fd, &cmd);
 }
 
-int dnvme_admin_get_log_page(int fd, uint32_t nsid, struct nvme_64b_send *cmd)
+int dnvme_admin_get_log_page(int fd, uint32_t nsid, uint8_t pid, uint8_t lsf, uint8_t rae, uint32_t numdw,
+    uint16_t lsid, uint32_t offset_low, uint32_t offset_up, uint8_t uuid_idx, uint8_t *buffer)
 {
-    int ret = 0;
-    return ret;
+    struct nvme_admin_cmd cmd = {
+        .opcode = NVME_ADMIN_GET_LOG_PAGE,
+        .flags = 0,
+        .nsid = nsid,
+        .prp1 = (uint64_t)buffer,
+        .cdw10.get_log_page.pid = pid,
+        .cdw10.get_log_page.lsf = lsf,
+        .cdw10.get_log_page.rae = rae,
+        .cdw10.get_log_page.numdw = numdw & 0xFFFF,
+        .cdw11.get_log_page.numdw = (numdw>>16) & 0xFFFF,
+        .cdw12.get_log_page.offset_low = offset_low,
+        .cdw13.get_log_page.offset_up = offset_up,
+        .cdw14.get_log_page.uuid_idx = uuid_idx,
+        .prp1 = (uint64_t)buffer,
+    };
+    return ioctl_identify(fd, &cmd);
 }
 
-int dnvme_admin_identify(int fd, uint32_t nsid, uint16_t ctrl_id, int cns, uint8_t *buffer)
+int dnvme_admin_identify(int fd, uint32_t nsid, uint16_t ctrl_id, uint8_t cns, uint8_t uuid_idx, uint8_t *buffer)
 {
     struct nvme_admin_cmd cmd = {
         .opcode = NVME_ADMIN_IDENTIFY,
@@ -316,18 +414,19 @@ int dnvme_admin_identify(int fd, uint32_t nsid, uint16_t ctrl_id, int cns, uint8
         .prp1 = (uint64_t)buffer,
         .cdw10.identify.cns = cns,
         .cdw10.identify.ctrl_id = ctrl_id,
+        .cdw14.identify.uuid_idx = uuid_idx,
     };
     return ioctl_identify(fd, &cmd);
 }
 
-int dnvme_admin_identify_ctrl(int fd, uint32_t nsid, uint16_t ctrl_id, uint8_t *buffer)
+int dnvme_admin_identify_ctrl(int fd, uint32_t nsid, uint16_t ctrl_id, uint8_t uuid_idx, uint8_t *buffer)
 {
-    return dnvme_admin_identify(fd, nsid, ctrl_id, NVME_ID_CNS_CTRL, buffer);
+    return dnvme_admin_identify(fd, nsid, ctrl_id, NVME_ID_CNS_CTRL, uuid_idx, buffer);
 }
 
-int dnvme_admin_identify_ns(int fd, uint32_t nsid, uint16_t ctrl_id, uint8_t *buffer)
+int dnvme_admin_identify_ns(int fd, uint32_t nsid, uint16_t ctrl_id, uint8_t uuid_idx, uint8_t *buffer)
 {
-    return dnvme_admin_identify(fd, nsid, ctrl_id, NVME_ID_CNS_NS, buffer);
+    return dnvme_admin_identify(fd, nsid, ctrl_id, NVME_ID_CNS_NS, uuid_idx, buffer);
 }
 
 int dnvme_admin_abort(int fd, uint32_t nsid, uint16_t sq_id, uint16_t cmd_id)
@@ -342,18 +441,8 @@ int dnvme_admin_abort(int fd, uint32_t nsid, uint16_t sq_id, uint16_t cmd_id)
     return ioctl_abort(fd, &cmd);
 }
 
-int dnvme_admin_set_feature(
-    int fd,
-    uint32_t nsid,
-    uint16_t feature_id,
-    uint8_t save,
-    uint32_t dw11,
-    uint32_t dw12,
-    uint32_t dw13,
-    uint32_t dw14,
-    uint32_t dw15,
-    uint8_t *buffer,
-    uint32_t buffer_size)
+int dnvme_admin_set_feature(int fd, uint32_t nsid, uint16_t feature_id, uint8_t save, uint32_t dw11, uint32_t dw12,
+    uint32_t dw13, uint32_t dw14, uint32_t dw15, uint8_t *buffer, uint32_t buffer_size)
 {
     struct nvme_admin_cmd cmd = {
         .opcode = NVME_ADMIN_SET_FEATURE,
@@ -395,18 +484,8 @@ int dnvme_set_power_state(int fd, uint32_t nsid, uint8_t save, uint8_t ps, uint8
         0);
 }
 
-int dnvme_admin_get_feature(
-    int fd,
-    uint32_t nsid,
-    uint16_t feature_id,
-    uint8_t select,
-    uint32_t dw11,
-    uint32_t dw12,
-    uint32_t dw13,
-    uint32_t dw14,
-    uint32_t dw15,
-    uint8_t *buffer,
-    uint32_t buffer_size)
+int dnvme_admin_get_feature(int fd, uint32_t nsid, uint16_t feature_id, uint8_t select, uint32_t dw11, uint32_t dw12,
+    uint32_t dw13, uint32_t dw14, uint32_t dw15, uint8_t *buffer, uint32_t buffer_size)
 {
     struct nvme_admin_cmd cmd = {
         .opcode = NVME_ADMIN_GET_FEATURE,
@@ -431,18 +510,8 @@ int dnvme_get_power_state(int fd, uint32_t nsid, uint8_t select)
     union dw13_u dw13 = {0};
     union dw14_u dw14 = {0};
     union dw15_u dw15 = {0};
-    return dnvme_admin_get_feature(
-        fd,
-        nsid,
-        NVME_FEATURE_POWER_MANAGEMENT,
-        select,
-        dw11.value,
-        dw12.value,
-        dw13.value,
-        dw14.value,
-        dw15.value,
-        NULL,
-        0);
+    return dnvme_admin_get_feature(fd, nsid, NVME_FEATURE_POWER_MANAGEMENT, select, dw11.value, dw12.value,
+        dw13.value, dw14.value, dw15.value, NULL, 0);
 }
 
 int dnvme_admin_async_event_request(int fd, uint32_t nsid)
@@ -474,13 +543,13 @@ int dnvme_admin_firmware_commit(int fd, uint32_t nsid, uint32_t fs, uint32_t ca,
     return ioctl_firmware_commit(fd, &cmd);
 }
 
-int dnvme_admin_firmware_image_download(int fd, uint32_t nsid, uint32_t numd, uint32_t ofst, uint8_t *buffer, uint32_t buffer_size)
+int dnvme_admin_firmware_image_download(int fd, uint32_t nsid, uint32_t numdw, uint32_t ofst, uint8_t *buffer, uint32_t buffer_size)
 {
     struct nvme_admin_cmd cmd = {
         .opcode = NVME_ADMIN_FIRMWARE_IMAGE_DOWNLOAD,
         .flags = 0,
         .nsid = nsid,
-        .cdw10.fw_dnld.numd = numd,
+        .cdw10.fw_dnld.numdw = numdw,
         .cdw11.fw_dnld.ofst = ofst,
         .prp1 = (uint64_t)buffer,
     };
@@ -505,10 +574,19 @@ int dnvme_admin_namespace_attachment(int fd, struct nvme_64b_send *cmd)
     return ret;
 }
 
-int dnvme_admin_format_nvm(int fd, struct nvme_64b_send *cmd)
+int dnvme_admin_format_nvm(int fd, uint32_t nsid, uint8_t lbaf, uint8_t mset, uint8_t pi, uint8_t pil, uint8_t ses)
 {
-    int ret = 0;
-    return ret;
+    struct nvme_admin_cmd cmd = {
+        .opcode = NVME_ADMIN_FORMAT_NVM,
+        .flags = 0,
+        .nsid = nsid,
+        .cdw10.format_nvm.lbaf = lbaf,
+        .cdw10.format_nvm.mset = mset,
+        .cdw10.format_nvm.pi = pi,
+        .cdw10.format_nvm.pil = pil,
+        .cdw10.format_nvm.ses = ses,
+    };
+    return ioctl_format_nvm(fd, &cmd);
 }
 
 int dnvme_admin_security_send(int fd, struct nvme_64b_send *cmd)
@@ -523,10 +601,21 @@ int dnvme_admin_security_receive(int fd, struct nvme_64b_send *cmd)
     return ret;
 }
 
-int dnvme_admin_sanitize_nvm(int fd, struct nvme_64b_send *cmd)
+int dnvme_admin_sanitize(int fd, uint32_t nsid, uint8_t action, uint8_t ause, uint8_t owpass, uint8_t owipbp, uint8_t ndas,
+    uint32_t ovrpat, uint32_t buffer_size)
 {
-    int ret = 0;
-    return ret;
+    struct nvme_admin_cmd cmd = {
+        .opcode = NVME_ADMIN_SANITIZE,
+        .flags = 0,
+        .nsid = nsid,
+        .cdw10.sanitize.action = action,
+        .cdw10.sanitize.ause = ause,
+        .cdw10.sanitize.owpass = owpass,
+        .cdw10.sanitize.owipbp = owipbp,
+        .cdw10.sanitize.ndas = ndas,
+        .cdw11.sanitize.ovrpat = ovrpat,
+    };
+    return ioctl_sanitize(fd, &cmd, buffer_size);
 }
 
 /************************************** IO commands **************************************/

@@ -185,7 +185,7 @@ enum nvme_admin_opcode {
     NVME_ADMIN_FORMAT_NVM                   = 0x80,
     NVME_ADMIN_SECURITY_SEND                = 0x81,
     NVME_ADMIN_SECURITY_RECV                = 0x82,
-    NVME_ADMIN_SANITIZE_NVM                 = 0x84,
+    NVME_ADMIN_SANITIZE                     = 0x84,
 };
 
 enum {
