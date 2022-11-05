@@ -314,7 +314,7 @@ union dw10_u {
         uint32_t bpid: 1;    /*boot partition id*/
     } fw_cmt;
     struct {
-        uint32_t numd; /*number of dword*/
+        uint32_t numdw; /*number of dword*/
     } fw_dnld;
     struct {
         uint32_t fid: 8;
@@ -327,11 +327,11 @@ union dw10_u {
         uint32_t rsvd: 21;
     } get_feature;
     struct {
-        uint32_t lp_id: 8;
-        uint32_t lp_field: 4;
+        uint32_t pid: 8;
+        uint32_t lsf: 4; /*Log sepcific field*/
         uint32_t rsvd: 3;
-        uint32_t retain_async_event: 1;
-        uint32_t num_dw_low: 16;
+        uint32_t rae: 1;
+        uint32_t numdw: 16;
     } get_log_page;
     struct {
         uint8_t cns;
@@ -354,21 +354,21 @@ union dw10_u {
         uint32_t ci: 16; //Controller Identifier
     } vm; //Virtualization Management command
     struct {
-        uint32_t lf: 4; //LBA Format
-        uint32_t ms: 1; //Metadata Settings
+        uint32_t lbaf: 4; //LBA Format
+        uint32_t mset: 1; //Metadata Settings
         uint32_t pi: 3; //Protection Information
         uint32_t pil: 1; //Protection Information Location
         uint32_t ses: 3; //Secure Erase Settings
         uint32_t rsvd: 20;
-    } fmt;
+    } format_nvm;
     struct {
-        uint32_t sa: 3; //Sanitize Action
+        uint32_t action: 3; //Sanitize Action
         uint32_t ause: 1; //Allow Unrestricted Sanitize Exit
-        uint32_t opc: 4; //Overwrite Pass Count
-        uint32_t oipbp: 1; //Overwrite Invert Pattern Between Passes
+        uint32_t owpass: 4; //Overwrite Pass Count
+        uint32_t owipbp: 1; //Overwrite Invert Pattern Between Passes
         uint32_t ndas: 1; //No Deallocate After Sanitize
         uint32_t rsvd: 22;
-    } sntz;
+    } sanitize;
     struct {
         uint8_t nssf; //NVMe Security Specific Field
         uint8_t ss0; //SP Specific 0
@@ -383,7 +383,7 @@ union dw10_u {
     } sec_send;
     struct {
         uint32_t sll; //Starting LBA Lower
-    } gls; //Get LBA Status
+    } get_lba_status;
 };
 
 /**
@@ -417,8 +417,8 @@ union dw11_u {
         uint32_t ofst;
     } fw_dnld;
     struct {
-        uint16_t num_dw;
-        uint16_t lp_id;
+        uint16_t numdw;
+        uint16_t lsid; /*Log specific ID*/
     } get_log_page;
     struct {
         uint16_t nvm_set_id;
@@ -559,8 +559,8 @@ union dw11_u {
         uint16_t rsvd;
     } vm;
     struct {
-        uint32_t op; //Overwrite Pattern
-    } sntz;
+        uint32_t ovrpat; //Overwrite Pattern
+    } sanitize;
     struct {
         uint32_t al; //Allocation Length
     } sec_recv;
@@ -569,7 +569,7 @@ union dw11_u {
     } sec_send;
     struct {
         uint32_t slu; //Starting LBA Upper
-    } gls; //Get LBA Status
+    } get_lba_status;
 };
 
 /**
@@ -582,7 +582,7 @@ union dw12_u {
         uint16_t rsvd;
     } create_iosq;
     struct {
-        uint32_t lp_offset_low;
+        uint32_t offset_low;
     } get_log_page;
     union {
         struct {
@@ -603,7 +603,7 @@ union dw12_u {
     } feature;
     struct {
         uint32_t mnod; //Maximum Number of Dwords
-    } gls; //Get LBA Status
+    } get_lba_status;
 };
 
 /**
@@ -612,7 +612,7 @@ union dw12_u {
 union dw13_u {
     uint32_t value;
     struct {
-        uint32_t lp_offset_up;
+        uint32_t offset_up;
     } get_log_page;
     union {
         struct {
@@ -623,7 +623,7 @@ union dw13_u {
         uint16_t rl; //Range Length
         uint8_t rsvd;
         uint8_t at; //Action Type
-    } gls; //Get LBA Status
+    } get_lba_status;
 };
 
 /**
@@ -632,19 +632,19 @@ union dw13_u {
 union dw14_u {
     uint32_t value;
     struct {
-        uint32_t uuid: 7;
+        uint32_t uuid_idx: 7;
         uint32_t rsvd: 25;
     } set_feature;
     struct {
-        uint32_t uuid: 7;
+        uint32_t uuid_idx: 7;
         uint32_t rsvd: 25;
     } get_feature;
     struct {
-        uint32_t uuid: 7;
+        uint32_t uuid_idx: 7;
         uint32_t rsvd: 25;
     } get_log_page;
     struct {
-        uint32_t uuid: 7;
+        uint32_t uuid_idx: 7;
         uint32_t rsvd: 25;
     } identify;
     union {

@@ -144,10 +144,10 @@ int main(int argc, char *argv[])
     ret = dnvme_admin_create_iosq(fd, 0, sq_id, cq_id, qsize, contig, iosq_buffer, 1, 0);
     if (ret)
         return ret;
-    ret = dnvme_admin_identify_ctrl(fd, 0, 0, identify_ctrl_buffer);
+    ret = dnvme_admin_identify_ctrl(fd, 0, 0, 0, identify_ctrl_buffer);
     if (ret)
         return ret;
-    ret = dnvme_admin_identify_ns(fd, 1, 0, identify_ns_buffer);
+    ret = dnvme_admin_identify_ns(fd, 1, 0, 0, identify_ns_buffer);
     if (ret)
         return ret;
     //ret = dnvme_admin_abort(fd, 0, NVME_ADMIN_IDENTIFY);
