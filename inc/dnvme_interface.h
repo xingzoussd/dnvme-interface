@@ -1023,5 +1023,108 @@ struct nvme_logstr {
     const char *log_str;    /* NULl terminated ASCII logging statement */
 };
 
+union dw10_io_u {
+    struct {
+        uint32_t start_lba_low;
+    } compare, read, verify, write, write_uc, write_zeros;
+    struct {
+        uint32_t nr:8; /*Number of range*/
+        uint32_t reserved:24;
+    } dataset_management;
+};
+
+union dw11_io_u {
+    struct {
+        uint32_t start_lba_up;
+    } compare, read, verify, write, write_uc, write_zeros;
+    struct {
+        uint32_t idr:1; /*Attribute - Integral dataset for read*/
+        uint32_t idw:1; /*Attribute - Integral dataset for write*/
+        uint32_t deallocate:1; /*Attribute - Deallocate*/
+        uint32_t reserved:29;
+    } dataset_management;
+};
+
+union dw12_io_u {
+    struct {
+        uint32_t nlb:16;
+        uint32_t reserved:10;
+        uint32_t prinfo:4;
+        uint32_t fua:1;
+        uint32_t lr:1; /*Limit retry*/
+    } compare, read, verify;
+    struct {
+        uint32_t nlb:16;
+        uint32_t reserved1:4;
+        uint32_t dtype:4; /*Directive type*/
+        uint32_t reserved2:2;
+        uint32_t prinfo:4;
+        uint32_t fua:1;
+        uint32_t lr:1; /*Limit retry*/
+    } write;
+    struct {
+        uint32_t nlb:16;
+        uint32_t reserved:16;
+    } write_uc;
+    struct {
+        uint32_t nlb:16;
+        uint32_t reserved:9;
+        uint32_t deallocate:1;
+        uint32_t prinfo:4;
+        uint32_t fua:1;
+        uint32_t lr:1; /*Limit retry*/
+    } write_zeros;
+};
+
+union dw13_io_u {
+    struct {
+        uint32_t dsm:8; /*dataset management*/
+        uint32_t reserved:24;
+    } read;
+    struct {
+        uint32_t dsm:8; /*dataset management*/
+        uint32_t reserved:8;
+        uint32_t dspec:16; /*Directive specific*/
+    } write;
+};
+
+union dw14_io_u {
+    struct {
+        uint32_t eilbrt; /*Expected initial logic block referance tag*/
+    } compare, read, verify;
+    struct {
+        uint32_t ilbrt; /*Initial logic block referance tag*/
+    } write, write_zeros;
+};
+
+union dw15_io_u {
+    struct {
+        uint32_t elbat:16; /*Expected logic block application tag*/
+        uint32_t elbatm:16; /*Expected logic block application tag mask*/
+    } compare, read, verify;
+    struct {
+        uint32_t lbat:16; /*Logic block application tag*/
+        uint32_t lbatm:16; /*Logic block application tag mask*/
+    } write, write_zeros;
+};
+
+
+
+struct nvme_io_cmd {
+    uint8_t  opcode;
+    uint8_t  flags;
+    uint16_t command_id;
+    uint32_t nsid;
+    uint64_t rsvd2;
+    uint64_t metadata;
+    uint64_t prp1;
+    uint64_t prp2;
+    union dw10_io_u cdw10;
+    union dw11_io_u cdw11;
+    union dw12_io_u cdw12;
+    union dw13_io_u cdw13;
+    union dw14_io_u cdw14;
+    union dw15_io_u cdw15;
+};
 
 #endif
