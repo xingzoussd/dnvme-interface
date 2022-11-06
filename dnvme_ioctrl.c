@@ -189,7 +189,7 @@ int ioctl_firmware_download(int fd, struct nvme_admin_cmd *cmd, uint32_t buffer_
         .cmd_buf_ptr = (uint8_t *)cmd,
         .data_buf_size = buffer_size,
         .data_buf_ptr = (uint8_t *)cmd->prp1,
-        .data_dir = DATA_DIR_FROM_DEVICE,
+        .data_dir = DATA_DIR_TO_DEVICE,
     };
     return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
 }
@@ -225,6 +225,106 @@ int ioctl_sanitize(int fd, struct nvme_admin_cmd *cmd, uint32_t buffer_size)
         .data_buf_size = buffer_size,
         .data_buf_ptr = (uint8_t *)cmd->prp1,
         .data_dir = DATA_DIR_TO_DEVICE,
+    };
+    return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
+}
+
+int ioctl_compare(int fd, struct nvme_io_cmd *cmd, uint32_t buffer_size, uint16_t qid)
+{
+    struct nvme_64b_send user_cmd = {
+        .q_id = qid,
+        .bit_mask = MASK_PRP1_PAGE,
+        .cmd_buf_ptr = (uint8_t *)cmd,
+        .data_buf_size = buffer_size,
+        .data_buf_ptr = (uint8_t *)cmd->prp1,
+        .data_dir = DATA_DIR_FROM_DEVICE,
+    };
+    return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
+}
+
+int ioctl_dataset_management(int fd, struct nvme_io_cmd *cmd, uint32_t buffer_size, uint16_t qid)
+{
+    struct nvme_64b_send user_cmd = {
+        .q_id = qid,
+        .bit_mask = MASK_PRP1_PAGE,
+        .cmd_buf_ptr = (uint8_t *)cmd,
+        .data_buf_size = buffer_size,
+        .data_buf_ptr = (uint8_t *)cmd->prp1,
+        .data_dir = DATA_DIR_TO_DEVICE,
+    };
+    return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
+}
+
+int ioctl_flush(int fd, struct nvme_io_cmd *cmd, uint16_t qid)
+{
+    struct nvme_64b_send user_cmd = {
+        .q_id = qid,
+        .cmd_buf_ptr = (uint8_t *)cmd,
+    };
+    return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
+}
+
+int ioctl_read(int fd, struct nvme_io_cmd *cmd, uint32_t buffer_size, uint16_t qid)
+{
+    struct nvme_64b_send user_cmd = {
+        .q_id = qid,
+        .bit_mask = MASK_PRP1_PAGE,
+        .cmd_buf_ptr = (uint8_t *)cmd,
+        .data_buf_size = buffer_size,
+        .data_buf_ptr = (uint8_t *)cmd->prp1,
+        .data_dir = DATA_DIR_FROM_DEVICE,
+    };
+    return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
+}
+
+int ioctl_verify(int fd, struct nvme_io_cmd *cmd, uint32_t buffer_size, uint16_t qid)
+{
+    struct nvme_64b_send user_cmd = {
+        .q_id = qid,
+        .bit_mask = MASK_PRP1_PAGE,
+        .cmd_buf_ptr = (uint8_t *)cmd,
+        .data_buf_size = buffer_size,
+        .data_buf_ptr = (uint8_t *)cmd->prp1,
+        .data_dir = DATA_DIR_FROM_DEVICE,
+    };
+    return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
+}
+
+int ioctl_write(int fd, struct nvme_io_cmd *cmd, uint32_t buffer_size, uint16_t qid)
+{
+    struct nvme_64b_send user_cmd = {
+        .q_id = qid,
+        .bit_mask = MASK_PRP1_PAGE,
+        .cmd_buf_ptr = (uint8_t *)cmd,
+        .data_buf_size = buffer_size,
+        .data_buf_ptr = (uint8_t *)cmd->prp1,
+        .data_dir = DATA_DIR_FROM_DEVICE,
+    };
+    return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
+}
+
+int ioctl_write_uncorrectable(int fd, struct nvme_io_cmd *cmd, uint32_t buffer_size, uint16_t qid)
+{
+    struct nvme_64b_send user_cmd = {
+        .q_id = qid,
+        .bit_mask = MASK_PRP1_PAGE,
+        .cmd_buf_ptr = (uint8_t *)cmd,
+        .data_buf_size = buffer_size,
+        .data_buf_ptr = (uint8_t *)cmd->prp1,
+        .data_dir = DATA_DIR_FROM_DEVICE,
+    };
+    return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
+}
+
+int ioctl_write_zeros(int fd, struct nvme_io_cmd *cmd, uint32_t buffer_size, uint16_t qid)
+{
+    struct nvme_64b_send user_cmd = {
+        .q_id = qid,
+        .bit_mask = MASK_PRP1_PAGE,
+        .cmd_buf_ptr = (uint8_t *)cmd,
+        .data_buf_size = buffer_size,
+        .data_buf_ptr = (uint8_t *)cmd->prp1,
+        .data_dir = DATA_DIR_FROM_DEVICE,
     };
     return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
 }

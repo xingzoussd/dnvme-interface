@@ -602,7 +602,7 @@ int dnvme_admin_security_receive(int fd, struct nvme_64b_send *cmd)
 }
 
 int dnvme_admin_sanitize(int fd, uint32_t nsid, uint8_t action, uint8_t ause, uint8_t owpass, uint8_t owipbp, uint8_t ndas,
-    uint32_t ovrpat, uint32_t buffer_size)
+    uint32_t ovrpat, uint8_t *buffer, uint32_t buffer_size)
 {
     struct nvme_admin_cmd cmd = {
         .opcode = NVME_ADMIN_SANITIZE,
@@ -614,6 +614,7 @@ int dnvme_admin_sanitize(int fd, uint32_t nsid, uint8_t action, uint8_t ause, ui
         .cdw10.sanitize.owipbp = owipbp,
         .cdw10.sanitize.ndas = ndas,
         .cdw11.sanitize.ovrpat = ovrpat,
+        .prp1 = (uint64_t)buffer,
     };
     return ioctl_sanitize(fd, &cmd, buffer_size);
 }
@@ -632,10 +633,27 @@ int dnvme_nvm_write(int fd, struct nvme_64b_send *cmd)
     return ret;
 }
 
-int dnvme_nvm_read(int fd, struct nvme_64b_send *cmd)
+int dnvme_nvm_read(int fd, uint16_t qid, uint32_t nsid, uint64_t start_lba, uint16_t n_lba, uint8_t protect_info, uint8_t fua,
+    uint8_t limit_retry, uint8_t dataset_management, uint32_t expected_init_blk_ref_tag, uint16_t expected_blk_app_tag,
+    uint16_t expected_blk_app_tag_mask, uint8_t *buffer, uint32_t buffer_size)
 {
-    int ret = 0;
-    return ret;
+    struct nvme_io_cmd cmd = {
+        .opcode = NVME_CMD_READ,
+        .flags = 0,
+        .nsid = nsid,
+        .cdw10.read.start_lba_low = start_lba & 0xFFFFFFFF,
+        .cdw11.read.start_lba_up = (start_lba>>32) & 0xFFFFFFFF,
+        .cdw12.read.nlb = n_lba,
+        .cdw12.read.prinfo = protect_info,
+        .cdw12.read.fua = fua,
+        .cdw12.read.lr = limit_retry,
+        .cdw13.read.dsm = dataset_management,
+        .cdw14.read.eilbrt = expected_init_blk_ref_tag,
+        .cdw15.read.elbat = expected_blk_app_tag,
+        .cdw15.read.elbatm = expected_blk_app_tag_mask,
+        .prp1 = (uint64_t)buffer,
+    };
+    return ioctl_read(fd, &cmd, buffer_size, qid);
 }
 
 int dnvme_nvm_write_uncorrectable(int fd, struct nvme_64b_send *cmd)

@@ -138,15 +138,18 @@ int main(int argc, char *argv[])
         return ret;
 //    dnvme_pcie_msix_enable(fd, msix_cap);
 //    ioctl_device_metrics(fd);
+    printf("Create IOCQ/IOSQ\n");
     ret = dnvme_admin_create_iocq(fd, 0, cq_id, irq_no, qsize, contig, iocq_buffer);
     if (ret)
         return ret;
     ret = dnvme_admin_create_iosq(fd, 0, sq_id, cq_id, qsize, contig, iosq_buffer, 1, 0);
     if (ret)
         return ret;
+    printf("Identify controller\n");
     ret = dnvme_admin_identify_ctrl(fd, 0, 0, 0, identify_ctrl_buffer);
     if (ret)
         return ret;
+    printf("Identify namespace\n");
     ret = dnvme_admin_identify_ns(fd, 1, 0, 0, identify_ns_buffer);
     if (ret)
         return ret;
@@ -198,6 +201,41 @@ int main(int argc, char *argv[])
     if (ret)
         return ret;
     show_raw_data(cq_buffer, cq_buffer_size, "CQ data");
+    printf("Read data\n");
+    {
+        uint16_t qid = 1;
+        uint32_t nsid = NVME_NSID_ALL;
+        uint64_t start_lba = 0;
+        uint16_t n_lba = 8;
+        uint8_t protect_info = 0;
+        uint8_t fua = 0;
+        uint8_t limit_retry = 0;
+        uint8_t dataset_management = 0;
+        uint32_t expected_init_blk_ref_tag = 0;
+        uint16_t expected_blk_app_tag = 0;
+        uint16_t expected_blk_app_tag_mask = 0;
+        uint32_t buffer_size = n_lba * 512;
+        void *data_buffer = NULL;
+        int ret = malloc_4k_aligned_buffer(&data_buffer, buffer_size, 1);
+        if (ret)
+            return ret;
+        dnvme_nvm_read(fd, qid, nsid, start_lba, n_lba, protect_info, fua, limit_retry, dataset_management, expected_init_blk_ref_tag,
+            expected_blk_app_tag, expected_blk_app_tag_mask, data_buffer, buffer_size);
+        show_raw_data(iocq_buffer, NVME_IOCQ_ELEMENT_SIZE*qsize, "CQ 1 data");
+        ret = dnvme_ring_doorbell(fd, 1);
+        if (ret)
+            return ret;
+        cq_remaining = dnvme_cq_remain(fd, 1);
+        cq_buffer_size = cq_remaining*16;
+        ret = malloc_4k_aligned_buffer(&cq_buffer, cq_buffer_size, 1);
+        if (ret)
+            return ret;
+        ret = dnvme_cq_reap(fd, 1, cq_remaining, cq_buffer, cq_buffer_size);
+        if (ret)
+            return ret;
+        show_raw_data(cq_buffer, cq_buffer_size, "CQ data");
+        show_raw_data((uint8_t *)data_buffer, buffer_size, "Read data");
+    }
     return 0;
 }
 
