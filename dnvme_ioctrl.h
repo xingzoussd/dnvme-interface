@@ -16,8 +16,8 @@
 int ioctl_send_command(int fd, struct nvme_64b_send *cmd);
 int ioctl_create_admin_cq(int fd);
 int ioctl_create_admin_sq(int fd);
-int ioctl_create_iocq(int fd, struct nvme_admin_cmd *cmd);
-int ioctl_create_iosq(int fd, struct nvme_admin_cmd *cmd);
+int ioctl_create_iocq(int fd, struct nvme_admin_cmd *cmd, uint8_t *buffer);
+int ioctl_create_iosq(int fd, struct nvme_admin_cmd *cmd, uint8_t *buffer);
 int ioctl_delete_ioq(int fd, struct nvme_admin_cmd *cmd);
 
 int ioctl_identify(int fd, struct nvme_admin_cmd *cmd);
@@ -31,6 +31,14 @@ int ioctl_firmware_download(int fd, struct nvme_admin_cmd *cmd, uint32_t buffer_
 int ioctl_device_self_test(int fd, struct nvme_admin_cmd *cmd, uint32_t buffer_size);
 int ioctl_format_nvm(int fd, struct nvme_admin_cmd *cmd);
 int ioctl_sanitize(int fd, struct nvme_admin_cmd *cmd, uint32_t buffer_size);
+int ioctl_compare(int fd, struct nvme_io_cmd *cmd, uint32_t buffer_size, uint16_t qid);
+int ioctl_dataset_management(int fd, struct nvme_io_cmd *cmd, uint32_t buffer_size, uint16_t qid);
+int ioctl_flush(int fd, struct nvme_io_cmd *cmd, uint16_t qid);
+int ioctl_read(int fd, struct nvme_io_cmd *cmd, uint8_t *buffer, uint32_t buffer_size, uint16_t qid);
+int ioctl_verify(int fd, struct nvme_io_cmd *cmd, uint32_t buffer_size, uint16_t qid);
+int ioctl_write(int fd, struct nvme_io_cmd *cmd, uint32_t buffer_size, uint16_t qid);
+int ioctl_write_uncorrectable(int fd, struct nvme_io_cmd *cmd, uint32_t buffer_size, uint16_t qid);
+int ioctl_write_zeros(int fd, struct nvme_io_cmd *cmd, uint32_t buffer_size, uint16_t qid);
 
 int ioctl_set_irq(int fd, struct interrupts *irq);
 int ioctl_ring_doorbell(int fd, uint16_t sq_id);

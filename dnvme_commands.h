@@ -79,7 +79,11 @@ int dnvme_admin_firmware_image_download(int fd, uint32_t nsid, uint32_t numdw, u
 int dnvme_admin_device_self_test(int fd, uint32_t nsid, uint32_t stc, uint8_t *buffer, uint32_t buffer_size);
 int dnvme_admin_format_nvm(int fd, uint32_t nsid, uint8_t lbaf, uint8_t mset, uint8_t pi, uint8_t pil, uint8_t ses);
 int dnvme_admin_sanitize(int fd, uint32_t nsid, uint8_t action, uint8_t ause, uint8_t owpass, uint8_t owipbp, uint8_t ndas,
-    uint32_t ovrpat, uint32_t buffer_size);
+    uint32_t ovrpat, uint8_t *buffer, uint32_t buffer_size);
+
+int dnvme_nvm_read(int fd, uint16_t qid, uint32_t nsid, uint64_t start_lba, uint16_t n_lba, uint8_t protect_info, uint8_t fua,
+    uint8_t limit_retry, uint8_t dataset_management, uint32_t expected_init_blk_ref_tag, uint16_t expected_blk_app_tag,
+    uint16_t expected_blk_app_tag_mask, uint8_t *buffer, uint32_t buffer_size);
 
 int dnvme_cq_remain(int fd, uint16_t q_id);
 int dnvme_cq_reap(int fd, uint16_t q_id, uint16_t remaining, uint8_t *buffer, uint32_t size);
