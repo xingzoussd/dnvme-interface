@@ -324,14 +324,14 @@ int dnvme_admin_create_iocq(
         .opcode = NVME_ADMIN_CREATE_IOCQ,
         .flags = 0,
         .nsid = nsid,
-        .prp1 = (uint64_t)buffer,
+        //.prp1 = (uint64_t)buffer,
         .cdw10.create_iocq.qid = cq_id,
         .cdw10.create_iocq.qsize = qsize,
         .cdw11.create_iocq.int_en = 1,
         .cdw11.create_iocq.int_no = int_no,
         .cdw11.create_iocq.contig= contig,
     };
-    int ret = ioctl_create_iocq(fd, &cmd);
+    int ret = ioctl_create_iocq(fd, &cmd, buffer);
     return ret;
 }
 
@@ -350,7 +350,7 @@ int dnvme_admin_create_iosq(
         .opcode = NVME_ADMIN_CREATE_IOSQ,
         .flags = 0,
         .nsid = nsid,
-        .prp1 = (uint64_t)buffer,
+        //.prp1 = (uint64_t)buffer,
         .cdw10.create_iosq.qid = sq_id,
         .cdw10.create_iosq.qsize = qsize,
         .cdw11.create_iosq.contig = contig,
@@ -358,7 +358,7 @@ int dnvme_admin_create_iosq(
         .cdw11.create_iosq.cq_id = cq_id,
         .cdw12.create_iosq.nvm_set_id = nvmsetid,
     };
-    int ret = ioctl_create_iosq(fd, &cmd);
+    int ret = ioctl_create_iosq(fd, &cmd, buffer);
     return ret;
 }
 
@@ -651,9 +651,8 @@ int dnvme_nvm_read(int fd, uint16_t qid, uint32_t nsid, uint64_t start_lba, uint
         .cdw14.read.eilbrt = expected_init_blk_ref_tag,
         .cdw15.read.elbat = expected_blk_app_tag,
         .cdw15.read.elbatm = expected_blk_app_tag_mask,
-        .prp1 = (uint64_t)buffer,
     };
-    return ioctl_read(fd, &cmd, buffer_size, qid);
+    return ioctl_read(fd, &cmd, buffer, buffer_size, qid);
 }
 
 int dnvme_nvm_write_uncorrectable(int fd, struct nvme_64b_send *cmd)
