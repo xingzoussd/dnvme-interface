@@ -42,8 +42,9 @@ int ioctl_create_admin_sq(int fd)
     return ioctl(fd, NVME_IOCTL_CREATE_ADMN_Q, &cmd);
 }
 
-int ioctl_create_iocq(int fd, struct nvme_admin_cmd *cmd)
+int ioctl_create_iocq(int fd, struct nvme_admin_cmd *cmd, uint8_t *buffer)
 {
+    int ret = 0;
     struct nvme_prep_cq prep_cmd = {
         .elements = cmd->cdw10.create_iosq.qsize,
         .cq_id = cmd->cdw10.create_iosq.qid,
@@ -51,21 +52,27 @@ int ioctl_create_iocq(int fd, struct nvme_admin_cmd *cmd)
     };
     struct nvme_64b_send user_cmd = {
         .q_id = 0,
-        .bit_mask = MASK_PRP1_PAGE,
+        .bit_mask = MASK_PRP1_LIST,
         .cmd_buf_ptr = (uint8_t *)cmd,
         .data_buf_size = cmd->cdw10.create_iocq.qsize*NVME_IOCQ_ELEMENT_SIZE,
-        .data_buf_ptr = (uint8_t *)cmd->prp1,
-        .data_dir = DATA_DIR_TO_DEVICE,
+        .data_buf_ptr = buffer,
+        .data_dir = DATA_DIR_NONE,
     };
-    int ret = ioctl(fd, NVME_IOCTL_PREPARE_CQ_CREATION, &prep_cmd);
+    if (cmd->cdw11.create_iosq.contig) {
+        user_cmd.bit_mask = MASK_PRP1_PAGE;
+        user_cmd.data_buf_size = 0;
+        user_cmd.data_buf_ptr = NULL;
+    }
+    ret = ioctl(fd, NVME_IOCTL_PREPARE_CQ_CREATION, &prep_cmd);
     if (ret)
         return ret;
     ret = ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
     return ret;
 }
 
-int ioctl_create_iosq(int fd, struct nvme_admin_cmd *cmd)
+int ioctl_create_iosq(int fd, struct nvme_admin_cmd *cmd, uint8_t *buffer)
 {
+    int ret = 0;
     struct nvme_prep_sq prep_cmd = {
         .elements = cmd->cdw10.create_iosq.qsize,
         .sq_id = cmd->cdw10.create_iosq.qid,
@@ -74,13 +81,18 @@ int ioctl_create_iosq(int fd, struct nvme_admin_cmd *cmd)
     };
     struct nvme_64b_send user_cmd = {
         .q_id = 0,
-        .bit_mask = MASK_PRP1_PAGE,
+        .bit_mask = MASK_PRP1_LIST,
         .cmd_buf_ptr = (uint8_t *)cmd,
         .data_buf_size = cmd->cdw10.create_iosq.qsize*NVME_IOSQ_ELEMENT_SIZE,
-        .data_buf_ptr = (uint8_t *)cmd->prp1,
-        .data_dir = DATA_DIR_TO_DEVICE,
+        .data_buf_ptr = buffer,
+        .data_dir = DATA_DIR_FROM_DEVICE,
     };
-    int ret = ioctl(fd, NVME_IOCTL_PREPARE_SQ_CREATION, &prep_cmd);
+    if (cmd->cdw11.create_iosq.contig) {
+        user_cmd.bit_mask = MASK_PRP1_PAGE;
+        user_cmd.data_buf_size = 0;
+        user_cmd.data_buf_ptr = NULL;
+    }
+    ret = ioctl(fd, NVME_IOCTL_PREPARE_SQ_CREATION, &prep_cmd);
     if (ret)
         return ret;
     ret = ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
@@ -264,14 +276,14 @@ int ioctl_flush(int fd, struct nvme_io_cmd *cmd, uint16_t qid)
     return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
 }
 
-int ioctl_read(int fd, struct nvme_io_cmd *cmd, uint32_t buffer_size, uint16_t qid)
+int ioctl_read(int fd, struct nvme_io_cmd *cmd, uint8_t *buffer, uint32_t buffer_size, uint16_t qid)
 {
     struct nvme_64b_send user_cmd = {
         .q_id = qid,
-        .bit_mask = MASK_PRP1_PAGE,
+        .bit_mask = MASK_PRP1_PAGE | MASK_PRP1_LIST | MASK_PRP2_PAGE | MASK_PRP2_LIST,
         .cmd_buf_ptr = (uint8_t *)cmd,
         .data_buf_size = buffer_size,
-        .data_buf_ptr = (uint8_t *)cmd->prp1,
+        .data_buf_ptr = buffer,
         .data_dir = DATA_DIR_FROM_DEVICE,
     };
     return ioctl(fd, NVME_IOCTL_SEND_64B_CMD, &user_cmd);
@@ -331,7 +343,11 @@ int ioctl_write_zeros(int fd, struct nvme_io_cmd *cmd, uint32_t buffer_size, uin
 
 int ioctl_ring_doorbell(int fd, uint16_t sq_id)
 {
-    return ioctl(fd, NVME_IOCTL_RING_SQ_DOORBELL, sq_id);
+    int ret = ioctl(fd, NVME_IOCTL_RING_SQ_DOORBELL, sq_id);
+    if (ret < 0) {
+        printf("Ring doorbell failed.\n");
+    }
+    return ret;
 }
 
 int ioctl_cq_remain(int fd, uint16_t q_id)
@@ -341,8 +357,9 @@ int ioctl_cq_remain(int fd, uint16_t q_id)
         .q_id = q_id,
     };
     ret = ioctl(fd, NVME_IOCTL_REAP_INQUIRY, &inquiry);
-    if (!ret)
-    {
+    if (ret < 0) {
+        printf("Reap inquiry failed");
+    } else {
         ret = inquiry.num_remaining;
     }
     return ret;
@@ -351,6 +368,7 @@ int ioctl_cq_remain(int fd, uint16_t q_id)
 int ioctl_cq_reap(int fd, uint16_t q_id, uint16_t remaining, uint8_t *buffer, uint32_t size)
 {
     struct nvme_reap reap = {
+        .q_id = q_id,
         .elements = remaining,
         .buffer = buffer,
         .size = size,
